@@ -1,7 +1,7 @@
 # Flask-Matomo-D
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
-[![PyPI](https://img.shields.io/pypi/v/flask-matomo.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/flask-matomo-d/)
+[![PyPI](https://img.shields.io/pypi/v/flask-matomo-d.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/flask-matomo-d/)
 
 Flask-Matomo-D is a library which lets you track the requests of your Flask website using Matomo (Piwik).
 
