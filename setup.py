@@ -7,7 +7,7 @@ except (IOError, ImportError):
     long_description = open('README.md').read()
 
 setup(
-    name="_Flask-Matomo",
+    name="Flask-Matomo-D",
     version="0.0.1",
     url="https://github.com/firefresh/_flask-matomo",
     license="MIT",
@@ -15,6 +15,7 @@ setup(
     author_email="demetriodowbnac@gmail.com",
     description="Track requests to your Flask website with Matomo ",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     packages=["flask_matomo"],
     zip_safe=False,
     include_package_data=True,

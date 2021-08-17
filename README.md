@@ -1,21 +1,21 @@
-# _Flask-Matomo
+# Flask-Matomo-D
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
-[![PyPI](https://img.shields.io/pypi/v/flask-matomo.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/_flask-matomo/)
+[![PyPI](https://img.shields.io/pypi/v/flask-matomo.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/flask-matomo-d/)
 
-_Flask-Matomo is a library which lets you track the requests of your Flask website using Matomo (Piwik).
+Flask-Matomo-D is a library which lets you track the requests of your Flask website using Matomo (Piwik).
 
 ## Installation
 
 ```
-pip install _flask-matomo
+pip install flask-matomo-d
 ```
 
 ## Usage
 
 ```python
 from flask import Flask, render_template
-from _flask_matomo import *
+from flask_matomo import *
 
 app = Flask(__name__)
 matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
