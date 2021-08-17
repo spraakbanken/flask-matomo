@@ -1,26 +1,25 @@
-# Flask-Matomo
+# _Flask-Matomo
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
-[![PyPI](https://img.shields.io/pypi/v/flask-matomo.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/flask-matomo/)
-[![Docs](https://img.shields.io/badge/docs-readthedocs-red.svg?style=flat-square)](https://flask-matomo.readthedocs.io)
+[![PyPI](https://img.shields.io/pypi/v/flask-matomo.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/_flask-matomo/)
 
-Flask-Matomo is a library which lets you track the requests of your Flask website using Matomo (Piwik).
+_Flask-Matomo is a library which lets you track the requests of your Flask website using Matomo (Piwik).
 
 ## Installation
 
 ```
-pip install flask-matomo
+pip install _flask-matomo
 ```
 
 ## Usage
 
 ```python
 from flask import Flask, render_template
-from flask_matomo import *
+from _flask_matomo import *
 
 app = Flask(__name__)
 matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
-                id_site=5, token_auth="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+                id_site=5, token_auth="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", secure=True)
 
 @app.route("/")
 def index():
@@ -36,8 +35,9 @@ In the code above:
 2. The *matomo_url* parameter is the url to your Matomo installation.
 3. The *id_site* parameter is the id of your site. This is used if you track several websites with on Matomo installation. It can be found if you open your Matomo dashboard, change to site you want to track and look for &idSite= in the url.
 4. The *token_auth* parameter can be found in the area API in the settings of Matomo. It is required for tracking the ip address.
+5. The *secure* parameter indicates whether the verification of trusted certificates is performed, by default is True.
 
 ## Meta
 
-Lucas Hild - [https://lucas-hild.de](https://lucas.hild.de)  
+Lucas Hild - [https://lucas-hild.de](https://lucas.hild.de)
 This project is licensed under the MIT License - see the LICENSE file for details

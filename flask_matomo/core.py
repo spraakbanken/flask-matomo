@@ -22,12 +22,13 @@ class Matomo(object):
         base_url (str): url to the site that should be tracked
     """
 
-    def __init__(self, app=None, matomo_url=None, id_site=None, token_auth=None, base_url=None):
+    def __init__(self, app=None, matomo_url=None, id_site=None, token_auth=None, base_url=None, secure=True):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
+        self.secure = secure
         self.ignored_routes = []
         self.routes_details = {}
 
@@ -35,6 +36,8 @@ class Matomo(object):
             raise ValueError("matomo_url has to be set")
         if type(id_site) != int:
             raise ValueError("id_site has to be an integer")
+        if type(secure) != bool:
+            raise ValueError('secure has to be a bool')
         if app is not None:
             self.init_app(app)
 
@@ -97,10 +100,14 @@ class Matomo(object):
             "cip": ip_address
         }
 
-        r = requests.post(self.matomo_url + "/piwik.php", params=data)
+        r = requests.post(self.matomo_url + "/piwik.php", params=data, verify=self.secure)
 
         if r.status_code != 200:
-            raise MatomoError(r.text)
+            raise MatomoError('Status code: {code} - Response: {response_text}'.format(
+                code=r.status_code,
+                response_text=r.text
+                )
+            )
 
     def ignore(self):
         """Ignore a route and don't track it
