@@ -8,9 +8,9 @@ except (IOError, ImportError):
 
 setup(
     name="Flask-Matomo-D",
-    version="0.0.1",
-    url="https://github.com/firefresh/_flask-matomo",
-    license="MIT",
+    version="0.0.2",
+    url="https://github.com/firefresh/flask-matomo-d",
+    license="",
     author="Demetrio Dowbnac",
     author_email="demetriodowbnac@gmail.com",
     description="Track requests to your Flask website with Matomo ",

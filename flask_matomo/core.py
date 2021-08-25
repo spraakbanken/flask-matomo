@@ -2,6 +2,7 @@ import requests
 
 from flask import current_app, request
 from threading import Thread
+import re
 
 from . import MatomoError
 
@@ -22,7 +23,7 @@ class Matomo(object):
         base_url (str): url to the site that should be tracked
     """
 
-    def __init__(self, app=None, matomo_url=None, id_site=None, token_auth=None, base_url=None, secure=True):
+    def __init__(self, app=None, matomo_url=None, id_site=None, token_auth=None, base_url=None, secure=True, allowed_paths=None):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
@@ -30,6 +31,7 @@ class Matomo(object):
         self.base_url = base_url.strip("/") if base_url else base_url
         self.secure = secure
         self.ignored_routes = []
+        self.allowed_paths = allowed_paths
         self.routes_details = {}
 
         if not matomo_url:
@@ -38,6 +40,8 @@ class Matomo(object):
             raise ValueError("id_site has to be an integer")
         if type(secure) != bool:
             raise ValueError('secure has to be a bool')
+        if allowed_paths and type(allowed_paths) != str:
+            raise ValueError('allowed_paths has to be a string, ex: "path1|pahtz|etc|admin"')
         if app is not None:
             self.init_app(app)
 
@@ -49,6 +53,10 @@ class Matomo(object):
         """Exectued before every request, parses details about request"""
         # Don't track track request, if user used ignore() decorator for route
         if request.endpoint in self.ignored_routes:
+            return
+
+        # Don't track request, if path is now allowed
+        if self.allowed_paths and not self.is_allowed_path():
             return
 
         if self.base_url:
@@ -150,3 +158,13 @@ class Matomo(object):
             return f
 
         return wrap
+
+    def is_allowed_path(self):
+        """Check using regex if the path is allowed
+
+            self.allowed_paths (str): 'path1|pathz|etc'
+        """
+        if re.search(self.allowed_paths, str(request.path)):
+            return True
+        else:
+            return False

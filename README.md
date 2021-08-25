@@ -18,8 +18,12 @@ from flask import Flask, render_template
 from flask_matomo import *
 
 app = Flask(__name__)
-matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
-                id_site=5, token_auth="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", secure=True)
+matomo = Matomo(app,
+                matomo_url="https://matomo.mydomain.com",
+                id_site=5,
+                token_auth="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                secure=True,
+                allowed_paths=None)
 
 @app.route("/")
 def index():
@@ -36,6 +40,7 @@ In the code above:
 3. The *id_site* parameter is the id of your site. This is used if you track several websites with on Matomo installation. It can be found if you open your Matomo dashboard, change to site you want to track and look for &idSite= in the url.
 4. The *token_auth* parameter can be found in the area API in the settings of Matomo. It is required for tracking the ip address.
 5. The *secure* parameter indicates whether the verification of trusted certificates is performed, by default is True.
+6. The *allowed_paths* indicates allowed paths of every incoming request to be tracked, use regex sintax. Ex: 'dasd|paht1|admin'
 
 ## Meta
 
