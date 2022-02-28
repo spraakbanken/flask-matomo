@@ -45,7 +45,7 @@ class Matomo(object):
     def before_request(self):
         """Exectued before every request, parses details about request"""
         # Don't track track request, if user used ignore() decorator for route
-        if request.endpoint in self.ignored_routes:
+        if request.url_rule in self.ignored_routes:
             return
 
         if self.base_url:
