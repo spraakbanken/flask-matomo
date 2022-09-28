@@ -29,6 +29,7 @@ class Matomo(object):
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
         self.ignored_routes = []
+        self.ignored_ua_prefixes = []
         self.routes_details = {}
 
         if not matomo_url:
@@ -47,14 +48,19 @@ class Matomo(object):
         # Don't track track request, if user used ignore() decorator for route
         if str(request.url_rule) in self.ignored_routes:
             return
+        if any(
+            str(request.user_agent).startswith(ua_prefix)
+            for ua_prefix in self.ignored_ua_prefixes
+        ):
+            return
 
         if self.base_url:
             url = self.base_url + request.path
         else:
             url = request.url
 
-        if request.endpoint:
-            action_name = request.endpoint
+        if request.url_rule:
+            action_name = str(request.url_rule)
         else:
             action_name = "Not Found"
 
