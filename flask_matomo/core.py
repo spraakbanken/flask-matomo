@@ -59,7 +59,10 @@ class Matomo(object):
             action_name = "Not Found"
 
         user_agent = request.user_agent
-        ip_address = request.remote_addr
+        # If request was forwarded (e.g. by a proxy), then get origin IP from
+        # HTTP_X_FORWARDED_FOR. If this header field doesn't exist, return
+        # remote_addr.
+        ip_address = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr)
 
         keyword_arguments = {
             "action_name": action_name,
