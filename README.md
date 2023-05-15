@@ -1,11 +1,12 @@
 # Flask-Matomo
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
-[![PyPI](https://img.shields.io/pypi/v/flask-matomo.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/flask-matomo/)
-[![Docs](https://img.shields.io/badge/docs-readthedocs-red.svg?style=flat-square)](https://flask-matomo.readthedocs.io)
+[![PyPI](https://img.shields.io/pypi/v/flask-matomo2.svg?style=flat-square&colorB=dfb317)](https://pypi.org/project/flask-matomo2/)
+<!-- [![Docs](https://img.shields.io/badge/docs-readthedocs-red.svg?style=flat-square)](https://flask-matomo.readthedocs.io) -->
 
 Flask-Matomo is a library which lets you track the requests of your Flask website using Matomo (Piwik).
 
+Forked from [LucasHild/flask-matomo](https://github.com/LucasHild/flask-matomo).
 ## Installation
 
 ```
@@ -39,5 +40,5 @@ In the code above:
 
 ## Meta
 
-Lucas Hild - [https://lucas-hild.de](https://lucas.hild.de)  
+Lucas Hild - [https://lucas-hild.de](https://lucas.hild.de)
 This project is licensed under the MIT License - see the LICENSE file for details
