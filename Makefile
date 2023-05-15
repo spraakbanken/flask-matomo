@@ -28,7 +28,7 @@ help:
 	@echo "run-doc-tests"
 	@echo "   run all tests"
 	@echo ""
-	@echo "test-w-coverage"
+	@echo "run-all-tests-w-coverage"
 	@echo "   run all tests with coverage collection"
 	@echo ""
 	@echo "lint"
@@ -42,7 +42,7 @@ help:
 
 dev: install-dev
 install-dev:
-	poetry install --without ci
+	poetry install
 
 # setup CI environment
 install-ci: install-dev
@@ -62,6 +62,8 @@ all_tests := ${all_test_dirs}
 .PHONY: test
 test:
 	${INVENV} pytest -vv ${tests}
+
+
 
 .PHONY: test-w-coverage
 test-w-coverage:
