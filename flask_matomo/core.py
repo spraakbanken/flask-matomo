@@ -2,6 +2,7 @@ import requests
 
 from flask import current_app, request
 from threading import Thread
+import re
 
 from . import MatomoError
 
@@ -22,19 +23,25 @@ class Matomo(object):
         base_url (str): url to the site that should be tracked
     """
 
-    def __init__(self, app=None, matomo_url=None, id_site=None, token_auth=None, base_url=None):
+    def __init__(self, app=None, matomo_url=None, id_site=None, token_auth=None, base_url=None, secure=True, allowed_paths=None):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
+        self.secure = secure
         self.ignored_routes = []
+        self.allowed_paths = allowed_paths
         self.routes_details = {}
 
         if not matomo_url:
             raise ValueError("matomo_url has to be set")
         if type(id_site) != int:
             raise ValueError("id_site has to be an integer")
+        if type(secure) != bool:
+            raise ValueError('secure has to be a bool')
+        if allowed_paths and type(allowed_paths) != str:
+            raise ValueError('allowed_paths has to be a string, ex: "path1|pahtz|etc|admin"')
         if app is not None:
             self.init_app(app)
 
@@ -46,6 +53,10 @@ class Matomo(object):
         """Exectued before every request, parses details about request"""
         # Don't track track request, if user used ignore() decorator for route
         if request.endpoint in self.ignored_routes:
+            return
+
+        # Don't track request, if path is now allowed
+        if self.allowed_paths and not self.is_allowed_path():
             return
 
         if self.base_url:
@@ -97,10 +108,14 @@ class Matomo(object):
             "cip": ip_address
         }
 
-        r = requests.post(self.matomo_url + "/piwik.php", params=data)
+        r = requests.post(self.matomo_url + "/piwik.php", params=data, verify=self.secure)
 
         if r.status_code != 200:
-            raise MatomoError(r.text)
+            raise MatomoError('Status code: {code} - Response: {response_text}'.format(
+                code=r.status_code,
+                response_text=r.text
+                )
+            )
 
     def ignore(self):
         """Ignore a route and don't track it
@@ -143,3 +158,13 @@ class Matomo(object):
             return f
 
         return wrap
+
+    def is_allowed_path(self):
+        """Check using regex if the path is allowed
+
+            self.allowed_paths (str): 'path1|pathz|etc'
+        """
+        if re.search(self.allowed_paths, str(request.path)):
+            return True
+        else:
+            return False
