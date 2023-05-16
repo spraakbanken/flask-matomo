@@ -1,3 +1,4 @@
+import typing
 from dataclasses import dataclass
 from unittest import mock
 from urllib.parse import parse_qs, urlsplit
@@ -90,11 +91,11 @@ def fixture_app(matomo_client, settings: dict) -> Flask:
 def fixture_expected_q(settings: dict) -> dict:
     return {
         "idsite": [str(settings["idsite"])],
-        "url": ["http://localhost"],
+        "url": ["http://testserver"],
         # "apiv": ["1"],
         # "lang": ["None"]
         "rec": ["1"],
-        "ua": ["werkzeug/2.3.4"],
+        "ua": ["python-httpx/0.24.0"],
         "cip": ["127.0.0.1"],
         "token_auth": ["FAKE_TOKEN"],
         # "send_image": ["0"],
@@ -103,11 +104,9 @@ def fixture_expected_q(settings: dict) -> dict:
 
 
 @pytest.fixture(name="client")
-def fixture_client(app: Flask):  # -> AsyncGenerator[AsyncClient, None]:
-    # async with LifespanManager(app):
-    #     async with AsyncClient(app=app, base_url="http://testserver") as client:
-    #         yield client
-    yield app.test_client()
+def fixture_client(app: Flask) -> typing.Generator[httpx.Client, None, None]:
+    with httpx.Client(app=app, base_url="http://testserver") as client:
+        yield client
 
 
 def assert_query_string(url: str, expected_q: dict) -> None:
@@ -127,4 +126,17 @@ def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q:
 
     expected_q["url"][0] += "/foo"
     expected_q["action_name"] = ["foo"]
+    assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+def test_x_forwarded_for_changes_ip(client, matomo_client, expected_q: dict):
+    forwarded_ip = "127.0.0.2"
+    response = client.get("/foo", headers={"x-forwarded-for": forwarded_ip})
+    assert response.status_code == 200
+
+    matomo_client.get.assert_called()  # get.assert_called()
+
+    expected_q["url"][0] += "/foo"
+    expected_q["action_name"] = ["foo"]
+    expected_q["cip"] = [forwarded_ip]
     assert_query_string(str(matomo_client.get.call_args), expected_q)
