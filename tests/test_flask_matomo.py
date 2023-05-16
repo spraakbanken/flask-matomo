@@ -40,7 +40,7 @@ def create_app(matomo_client, settings: dict) -> Flask:
         matomo_url="http://trackingserver",
         id_site=settings["idsite"],
         token_auth=settings["token_auth"],
-        # exclude_paths=["/health"],
+        ignored_routes=["/health"],
         # exclude_patterns=[".*/old.*"],
     )
 
@@ -48,8 +48,9 @@ def create_app(matomo_client, settings: dict) -> Flask:
     def foo():
         return "foo"
 
-    # async def health(request):
-    #     return PlainTextResponse("ok")
+    @app.route("/health")
+    def health_fn():
+        return "ok"
 
     # async def old(request):
     #     return PlainTextResponse("old")
@@ -71,9 +72,7 @@ def create_app(matomo_client, settings: dict) -> Flask:
     #     data = await request.json()
     #     return JSONResponse({"data": data})
 
-    # app.add_route("/foo", foo)
     # app.add_route("/bar", bar)
-    # app.add_route("/health", health)
     # app.add_route("/some/old/path", old)
     # app.add_route("/old/path", old)
     # app.add_route("/really/old", old)
@@ -125,7 +124,7 @@ def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q:
     matomo_client.get.assert_called()  # get.assert_called()
 
     expected_q["url"][0] += "/foo"
-    expected_q["action_name"] = ["foo"]
+    expected_q["action_name"] = ["/foo"]
     assert_query_string(str(matomo_client.get.call_args), expected_q)
 
 
@@ -137,6 +136,16 @@ def test_x_forwarded_for_changes_ip(client, matomo_client, expected_q: dict):
     matomo_client.get.assert_called()  # get.assert_called()
 
     expected_q["url"][0] += "/foo"
-    expected_q["action_name"] = ["foo"]
+    expected_q["action_name"] = ["/foo"]
     expected_q["cip"] = [forwarded_ip]
     assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+def test_matomo_client_doesnt_gets_called_on_get_health(
+    client: httpx.Client,
+    matomo_client,
+):
+    response = client.get("/health")
+    assert response.status_code == 200
+
+    matomo_client.get.assert_not_called()

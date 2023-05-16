@@ -28,6 +28,7 @@ class Matomo(object):
         token_auth=None,
         base_url=None,
         client=None,
+        ignored_routes: typing.Optional[typing.List[str]] = None,
     ):
         self.app = app
         self.matomo_url = matomo_url
@@ -35,7 +36,7 @@ class Matomo(object):
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
         self.ignored_ua_prefixes = []
-        self.ignored_routes: typing.List[str] = []
+        self.ignored_routes: typing.List[str] = ignored_routes or []
         self.routes_details: typing.Dict[str, typing.Dict[str, str]] = {}
         self.client = client or httpx.Client()
 
@@ -98,8 +99,11 @@ class Matomo(object):
         g.flask_matomo = keyword_arguments
 
     def teardown_request(self, exc: typing.Optional[Exception] = None) -> None:
+        if str(request.url_rule) in self.ignored_routes:
+            return
         keyword_arguments = g.get("flask_matomo", {})
 
+        print(f"{keyword_arguments=}")
         self.track(**keyword_arguments)
 
     def track(self, action_name, url, user_agent=None, id=None, ip_address=None):  # noqa: A002
