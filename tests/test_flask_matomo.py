@@ -34,7 +34,7 @@ def create_app(matomo_client, settings: dict) -> Flask:
     app = Flask(__name__)
 
     app.config.update({"TESTING": True})
-    Matomo(
+    matomo = Matomo(
         app,
         client=matomo_client,
         matomo_url="http://trackingserver",
@@ -50,6 +50,11 @@ def create_app(matomo_client, settings: dict) -> Flask:
 
     @app.route("/health")
     def health_fn():
+        return "ok"
+
+    @app.route("/heartbeat")
+    @matomo.ignore()
+    def heartbeat():
         return "ok"
 
     # async def old(request):
@@ -146,6 +151,16 @@ def test_matomo_client_doesnt_gets_called_on_get_health(
     matomo_client,
 ):
     response = client.get("/health")
+    assert response.status_code == 200
+
+    matomo_client.get.assert_not_called()
+
+
+def test_matomo_client_doesnt_gets_called_on_get_heartbeat(
+    client: httpx.Client,
+    matomo_client,
+):
+    response = client.get("/heartbeat")
     assert response.status_code == 200
 
     matomo_client.get.assert_not_called()

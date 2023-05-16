@@ -133,15 +133,13 @@ class Matomo(object):
         if r.status_code >= 300:
             raise MatomoError(r.text)
 
-    def ignore(self):
-        """Ignore a route and don't track it
+    def ignore(self, route: typing.Optional[str] = None):
+        """Ignore a route and don't track it.
 
-        Args:
-            action_name (str): name of the site
-            url (str): url to track
-            user_agent (str): User-Agent of request
-            id (str): id of user
-            ip_address (str): ip address of request
+        Parameters
+        ----------
+        route: str
+            name of the route.
 
         Examples:
             @app.route("/admin")
@@ -151,10 +149,14 @@ class Matomo(object):
         """
 
         def wrap(f):
-            self.ignored_routes.append(f.__name__)
+            route_name = route or self.guess_route_name(f.__name__)
+            self.ignored_routes.append(route_name)
             return f
 
         return wrap
+
+    def guess_route_name(self, path: str) -> str:
+        return f"/{path}"
 
     def details(self, action_name=None):
         """Set details like action_name for a route
