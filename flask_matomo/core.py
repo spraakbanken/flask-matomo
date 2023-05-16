@@ -5,7 +5,7 @@ from threading import Thread
 import httpx
 from flask import current_app, g, request
 
-from . import MatomoError
+from flask_matomo import MatomoError
 
 
 class Matomo(object):

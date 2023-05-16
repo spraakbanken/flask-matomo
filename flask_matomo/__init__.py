@@ -7,4 +7,6 @@ class MatomoError(Exception):
     pass
 
 
-from .core import Matomo
+from flask_matomo.core import Matomo
+
+__all__ = ["Matomo", "MatomoError"]
