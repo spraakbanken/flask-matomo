@@ -35,7 +35,7 @@ class Matomo(object):
         self.id_site = id_site
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
-        self.ignored_ua_prefixes = []
+        self.ignored_ua_prefixes: typing.List[str] = []
         self.ignored_routes: typing.List[str] = ignored_routes or []
         self.routes_details: typing.Dict[str, typing.Dict[str, str]] = {}
         self.client = client or httpx.Client()
