@@ -28,13 +28,15 @@ class Matomo(object):
         token_auth=None,
         base_url=None,
         client=None,
+        ignored_routes: typing.Optional[typing.List[str]] = None,
     ):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
-        self.ignored_routes: typing.List[str] = []
+        self.ignored_ua_prefixes = []
+        self.ignored_routes: typing.List[str] = ignored_routes or []
         self.routes_details: typing.Dict[str, typing.Dict[str, str]] = {}
         self.client = client or httpx.Client()
 
@@ -53,7 +55,12 @@ class Matomo(object):
     def before_request(self):
         """Exectued before every request, parses details about request"""
         # Don't track track request, if user used ignore() decorator for route
-        if request.endpoint in self.ignored_routes:
+        if str(request.url_rule) in self.ignored_routes:
+            return
+        if any(
+            str(request.user_agent).startswith(ua_prefix)
+            for ua_prefix in self.ignored_ua_prefixes
+        ):
             return
 
         if self.base_url:
@@ -61,8 +68,8 @@ class Matomo(object):
         else:
             url = request.url
 
-        if request.endpoint:
-            action_name = request.endpoint
+        if request.url_rule:
+            action_name = str(request.url_rule)
         else:
             action_name = "Not Found"
 
@@ -92,6 +99,8 @@ class Matomo(object):
         g.flask_matomo = keyword_arguments
 
     def teardown_request(self, exc: typing.Optional[Exception] = None) -> None:
+        if str(request.url_rule) in self.ignored_routes:
+            return
         keyword_arguments = g.get("flask_matomo", {})
 
         self.track(**keyword_arguments)
