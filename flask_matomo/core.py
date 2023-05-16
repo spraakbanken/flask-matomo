@@ -1,15 +1,11 @@
+import typing
 import urllib.parse
 from threading import Thread
 
 import httpx
-from flask import current_app, request
+from flask import current_app, g, request
 
 from . import MatomoError
-
-try:
-    from flask import _app_ctx_stack as stack
-except ImportError:
-    from flask import _request_ctx_stack as stack
 
 
 class Matomo(object):
@@ -38,8 +34,8 @@ class Matomo(object):
         self.id_site = id_site
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
-        self.ignored_routes = []
-        self.routes_details = {}
+        self.ignored_routes: typing.List[str] = []
+        self.routes_details: typing.Dict[str, typing.Dict[str, str]] = {}
         self.client = client or httpx.Client()
 
         if not matomo_url:
@@ -52,6 +48,7 @@ class Matomo(object):
     def init_app(self, app):
         """Initialize app"""
         app.before_request(self.before_request)
+        app.teardown_request(self.teardown_request)
 
     def before_request(self):
         """Exectued before every request, parses details about request"""
@@ -80,17 +77,23 @@ class Matomo(object):
         }
 
         # Overwrite action_name, if it was configured with config()
-        if self.routes_details.get(action_name) and self.routes_details.get(
-            action_name
-        ).get("action_name"):
+        if self.routes_details.get(action_name) and self.routes_details.get(action_name).get(
+            "action_name"
+        ):
             keyword_arguments["action_name"] = self.routes_details.get(action_name).get(
                 "action_name"
             )
 
         # Create new thread with request, because otherwise the original request will be blocked
-        Thread(target=self.track, kwargs=keyword_arguments).start()
+        # Thread(target=self.track, kwargs=keyword_arguments).start()
+        g.flask_matomo = keyword_arguments
 
-    def track(self, action_name, url, user_agent=None, id=None, ip_address=None):
+    def teardown_request(self, exc: typing.Optional[Exception] = None) -> None:
+        keyword_arguments = g.get("flask_matomo", {})
+
+        self.track(**keyword_arguments)
+
+    def track(self, action_name, url, user_agent=None, id=None, ip_address=None):  # noqa: A002
         """Send request to Matomo
 
         Args:
