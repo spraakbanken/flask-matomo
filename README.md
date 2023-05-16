@@ -53,6 +53,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Track original IP address if request was forwarded by proxy. [Tanikai/flask-matomo](https://github.com/Tanikai/flask-matomo) by [@Tanakai](https://github.com/Tanakai).
 - Change ignored routes to compare against rules instead of endpoint. [MSU-Libraries](https://github.com/MSU-Libraries/flask-matomo) by [@meganschanz](https://github.com/meganschanz).
 - Add ignored UserAgent prefix; set action to be url_rule. [MSU-Libraries](https://github.com/MSU-Libraries/flask-matomo) by [@natecollins](https://github.com/natecollins).
+- Fix matomo.ignore decorator.
 
 
 ## 0.1.0
