@@ -42,3 +42,22 @@ In the code above:
 
 Lucas Hild - [https://lucas-hild.de](https://lucas.hild.de)
 This project is licensed under the MIT License - see the LICENSE file for details
+
+# Release Notes
+
+## Latest Changes
+
+
+## 0.2.0
+
+### Changed
+
+- Track original IP address if request was forwarded by proxy [Tanikai/flask-matomo](https://github.com/Tanikai/flask-matomo).
+
+
+## 0.1.0
+
+- Forked from [LucasHild/flask-matomo](https://github.com/LucasHild/flask-matomo).
+- Renamed to `flask-matomo2`.
+- Add test suite.
+- Setup CI with Github Actions.
