@@ -3,8 +3,7 @@ import urllib.parse
 from threading import Thread
 
 import httpx
-from flask import _request_ctx_stack as stack
-from flask import current_app, request
+from flask import current_app, g, request
 
 from . import MatomoError
 
@@ -50,6 +49,7 @@ class Matomo(object):
     def init_app(self, app):
         """Initialize app"""
         app.before_request(self.before_request)
+        app.teardown_request(self.teardown_request)
 
     def before_request(self):
         """Exectued before every request, parses details about request"""
@@ -91,7 +91,13 @@ class Matomo(object):
             )
 
         # Create new thread with request, because otherwise the original request will be blocked
-        Thread(target=self.track, kwargs=keyword_arguments).start()
+        # Thread(target=self.track, kwargs=keyword_arguments).start()
+        g.flask_matomo = keyword_arguments
+
+    def teardown_request(self, exc: typing.Optional[Exception] = None) -> None:
+        keyword_arguments = g.get("flask_matomo", {})
+
+        self.track(**keyword_arguments)
 
     def track(self, action_name, url, user_agent=None, id=None, ip_address=None):  # noqa: A002
         """Send request to Matomo
