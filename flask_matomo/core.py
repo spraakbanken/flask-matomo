@@ -86,9 +86,9 @@ class Matomo(object):
         }
 
         # Overwrite action_name, if it was configured with config()
-        if self.routes_details.get(action_name) and self.routes_details.get(action_name).get(
-            "action_name"
-        ):
+        if self.routes_details.get(action_name) and self.routes_details.get(
+            action_name
+        ).get("action_name"):
             keyword_arguments["action_name"] = self.routes_details.get(action_name).get(
                 "action_name"
             )
@@ -102,7 +102,9 @@ class Matomo(object):
 
         self.track(**keyword_arguments)
 
-    def track(self, action_name, url, user_agent=None, id=None, ip_address=None):  # noqa: A002
+    def track(
+        self, action_name, url, user_agent=None, id=None, ip_address=None
+    ):  # noqa: A002
         """Send request to Matomo
 
         Args:
