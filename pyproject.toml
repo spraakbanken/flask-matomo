@@ -38,3 +38,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.black]
 line-length = 97
 target_version = ["py38"]
+
+[tool.pyright]
+reportGenralTypeIssues = "none"
