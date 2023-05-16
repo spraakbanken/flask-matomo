@@ -1,7 +1,8 @@
-import requests
-
-from flask import current_app, request
+import urllib.parse
 from threading import Thread
+
+import httpx
+from flask import current_app, request
 
 from . import MatomoError
 
@@ -22,7 +23,16 @@ class Matomo(object):
         base_url (str): url to the site that should be tracked
     """
 
-    def __init__(self, app=None, matomo_url=None, id_site=None, token_auth=None, base_url=None):
+    def __init__(
+        self,
+        app=None,
+        *,
+        matomo_url: str,
+        id_site=None,
+        token_auth=None,
+        base_url=None,
+        client=None,
+    ):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
@@ -31,6 +41,7 @@ class Matomo(object):
         self.ignored_routes = []
         self.ignored_ua_prefixes = []
         self.routes_details = {}
+        self.client = client or httpx.Client()
 
         if not matomo_url:
             raise ValueError("matomo_url has to be set")
@@ -71,13 +82,16 @@ class Matomo(object):
             "action_name": action_name,
             "url": url,
             "user_agent": user_agent,
-            "ip_address": ip_address
+            "ip_address": ip_address,
         }
 
         # Overwrite action_name, if it was configured with config()
-        if self.routes_details.get(action_name) and self.routes_details.get(action_name).get("action_name"):
-            keyword_arguments["action_name"] = self.routes_details.get(
-                action_name).get("action_name")
+        if self.routes_details.get(action_name) and self.routes_details.get(
+            action_name
+        ).get("action_name"):
+            keyword_arguments["action_name"] = self.routes_details.get(action_name).get(
+                "action_name"
+            )
 
         # Create new thread with request, because otherwise the original request will be blocked
         Thread(target=self.track, kwargs=keyword_arguments).start()
@@ -98,14 +112,16 @@ class Matomo(object):
             "ua": user_agent,
             "action_name": action_name,
             "url": url,
-            "_id": id,
+            # "_id": id,
             "token_auth": self.token_auth,
-            "cip": ip_address
+            "cip": ip_address,
         }
+        tracking_params = urllib.parse.urlencode(data)
+        tracking_url = f"{self.matomo_url}?{tracking_params}"
+        print(f"calling {tracking_url}")
+        r = self.client.get(tracking_url)
 
-        r = requests.post(self.matomo_url + "/piwik.php", params=data)
-
-        if r.status_code != 200:
+        if r.status_code >= 300:
             raise MatomoError(r.text)
 
     def ignore(self):
@@ -124,6 +140,7 @@ class Matomo(object):
             def admin():
                 return render_template("admin.html")
         """
+
         def wrap(f):
             self.ignored_routes.append(f.__name__)
             return f
@@ -142,10 +159,9 @@ class Matomo(object):
             def all_users():
                 return render_template("users.html")
         """
+
         def wrap(f):
-            self.routes_details[f.__name__] = {
-                "action_name": action_name
-            }
+            self.routes_details[f.__name__] = {"action_name": action_name}
             return f
 
         return wrap
