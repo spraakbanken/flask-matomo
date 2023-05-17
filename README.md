@@ -38,6 +38,54 @@ In the code above:
 3. The *id_site* parameter is the id of your site. This is used if you track several websites with one Matomo installation. It can be found if you open your Matomo dashboard, change to site you want to track and look for &idSite= in the url.
 4. The *token_auth* parameter can be found in the area API in the settings of Matomo. It is required for tracking the ip address.
 
+
+### Adding details to route
+
+You can provide details to a route in 2 ways, first by using the `matomo.details` decorator:
+
+```python
+from flask import Flask, render_template
+from flask_matomo import *
+
+app = Flask(__name__)
+matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
+                id_site=5, token_auth="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+
+@app.route("/foo")
+@matomo.details(action_name="Foo")
+def index():
+  return render_template("index.html")
+
+if __name__ == "__main__":
+  app.run()
+```
+
+or by giving details to the Matomo constructor:
+```python
+from flask import Flask, render_template
+from flask_matomo import *
+
+app = Flask(__name__)
+matomo = Matomo(
+  app,
+  matomo_url="https://matomo.mydomain.com",
+  id_site=5,
+  token_auth="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  routes_details={
+    "/foo": {
+      "action_name": "Foo"
+    }
+  }
+)
+
+@app.route("/foo")
+def index():
+  return render_template("index.html")
+
+if __name__ == "__main__":
+  app.run()
+```
+
 ## Meta
 
 Lucas Hild - [https://lucas-hild.de](https://lucas.hild.de)

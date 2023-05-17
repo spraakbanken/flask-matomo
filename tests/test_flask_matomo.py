@@ -70,6 +70,11 @@ def create_app(matomo_client, settings: dict) -> Flask:
     #     }
     #     return PlainTextResponse("custom_var")
 
+    @app.route("/bor")
+    @matomo.details(action_name="Foo-Bor")
+    def bor():
+        return "foo-bor"
+
     # async def bar(request):
     #     raise HTTPException(status_code=400, detail="bar")
 
@@ -164,3 +169,14 @@ def test_matomo_client_doesnt_gets_called_on_get_heartbeat(
     assert response.status_code == 200
 
     matomo_client.get.assert_not_called()
+
+
+def test_matomo_details_updates_action_name(client, matomo_client, expected_q: dict):
+    response = client.get("/bor")
+    assert response.status_code == 200
+
+    matomo_client.get.assert_called()  # get.assert_called()
+
+    expected_q["url"][0] += "/bor"
+    expected_q["action_name"] = ["Foo-Bor"]
+    assert_query_string(str(matomo_client.get.call_args), expected_q)

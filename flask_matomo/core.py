@@ -8,15 +8,21 @@ from flask import current_app, g, request
 from flask_matomo import MatomoError
 
 
-class Matomo(object):
+class Matomo:
     """The Matomo object provides the central interface for interacting with Matomo.
 
-    Args:
-        app (Flask object): created with Flask(__name__)
-        matomo_url (str): url to Matomo installation
-        id_site (int): id of the site that should be tracked on Matomo
-        token_auth (str): token that can be found in the area API in the settings of Matomo
-        base_url (str): url to the site that should be tracked
+    Parameters
+    ----------
+    app : Flask
+        created with Flask(__name__)
+    matomo_url : str
+        url to Matomo installation
+    id_site : int
+        id of the site that should be tracked on Matomo
+    token_auth : str
+        token that can be found in the area API in the settings of Matomo
+    base_url : str
+        url to the site that should be tracked
     """
 
     def __init__(
@@ -29,6 +35,7 @@ class Matomo(object):
         base_url=None,
         client=None,
         ignored_routes: typing.Optional[typing.List[str]] = None,
+        routes_details: typing.Optional[typing.Dict[str, typing.Dict[str, str]]] = None,
     ):
         self.app = app
         self.matomo_url = matomo_url
@@ -37,7 +44,7 @@ class Matomo(object):
         self.base_url = base_url.strip("/") if base_url else base_url
         self.ignored_ua_prefixes: typing.List[str] = []
         self.ignored_routes: typing.List[str] = ignored_routes or []
-        self.routes_details: typing.Dict[str, typing.Dict[str, str]] = {}
+        self.routes_details: typing.Dict[str, typing.Dict[str, str]] = routes_details or {}
         self.client = client or httpx.Client()
 
         if not matomo_url:
@@ -158,11 +165,20 @@ class Matomo(object):
     def guess_route_name(self, path: str) -> str:
         return f"/{path}"
 
-    def details(self, action_name=None):
+    def details(
+        self,
+        route: typing.Optional[str] = None,
+        *,
+        action_name: typing.Optional[str] = None,
+    ):
         """Set details like action_name for a route
 
-        Args:
-            action_name (str): name of the site
+        Parameters
+        ----------
+        route: str
+            name of the route.
+        action_name : str
+            name of the site
 
         Examples:
             @app.route("/users")
@@ -172,7 +188,13 @@ class Matomo(object):
         """
 
         def wrap(f):
-            self.routes_details[f.__name__] = {"action_name": action_name}
+            route_details = {}
+            if action_name:
+                route_details["action_name"] = action_name
+
+            if route_details:
+                route_name = route or self.guess_route_name(f.__name__)
+                self.routes_details[route_name] = route_details
             return f
 
         return wrap
