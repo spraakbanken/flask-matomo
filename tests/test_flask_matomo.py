@@ -101,13 +101,13 @@ def fixture_expected_q(settings: dict) -> dict:
     return {
         "idsite": [str(settings["idsite"])],
         "url": ["http://testserver"],
-        # "apiv": ["1"],
+        "apiv": ["1"],
         # "lang": ["None"]
         "rec": ["1"],
         "ua": ["python-httpx/0.24.0"],
         "cip": ["127.0.0.1"],
         "token_auth": ["FAKE_TOKEN"],
-        # "send_image": ["0"],
+        "send_image": ["0"],
         # "cvar": ['{"http_status_code": 200, "http_method": "GET"}'],
     }
 
@@ -121,7 +121,7 @@ def fixture_client(app: Flask) -> typing.Generator[httpx.Client, None, None]:
 def assert_query_string(url: str, expected_q: dict) -> None:
     urlparts = urlsplit(url[6:-2])
     q = parse_qs(urlparts.query)
-    # assert q.pop("rand") is not None
+    assert q.pop("rand") is not None
     # assert q.pop("gt_ms") is not None
 
     assert q == expected_q
@@ -135,6 +135,18 @@ def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q:
 
     expected_q["url"][0] += "/foo"
     expected_q["action_name"] = ["/foo"]
+    assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+def test_lang_gets_tracked_if_accept_language_is_set(client, matomo_client, expected_q: dict):
+    response = client.get("/foo", headers={"accept-language": "sv"})
+    assert response.status_code == 200
+
+    matomo_client.get.assert_called()  # get.assert_called()
+
+    expected_q["url"][0] += "/foo"
+    expected_q["action_name"] = ["/foo"]
+    expected_q["lang"] = ["sv"]
     assert_query_string(str(matomo_client.get.call_args), expected_q)
 
 
