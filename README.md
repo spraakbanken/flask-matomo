@@ -95,6 +95,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+* fix details decorator. PR [#19](https://github.com/spraakbanken/flask-matomo2/pull/19) by [@kod-kristoff](https://github.com/kod-kristoff).
 
 ### Changed
 
