@@ -16,7 +16,7 @@ pip install flask-matomo
 ## Usage
 
 ```python
-from flask import Flask, render_template
+from flask import Flask, jsonify
 from flask_matomo import *
 
 app = Flask(__name__)
@@ -25,7 +25,7 @@ matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
 
 @app.route("/")
 def index():
-  return render_template("index.html")
+  return jsonify({"page": "index"})
 
 if __name__ == "__main__":
   app.run()
