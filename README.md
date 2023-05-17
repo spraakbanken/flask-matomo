@@ -44,7 +44,7 @@ In the code above:
 You can provide details to a route in 2 ways, first by using the `matomo.details` decorator:
 
 ```python
-from flask import Flask, render_template
+from flask import Flask, jsonify
 from flask_matomo import *
 
 app = Flask(__name__)
@@ -53,8 +53,8 @@ matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
 
 @app.route("/foo")
 @matomo.details(action_name="Foo")
-def index():
-  return render_template("index.html")
+def foo():
+  return jsonify({"page": "foo"})
 
 if __name__ == "__main__":
   app.run()
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
 or by giving details to the Matomo constructor:
 ```python
-from flask import Flask, render_template
+from flask import Flask, jsonify
 from flask_matomo import *
 
 app = Flask(__name__)
@@ -79,8 +79,8 @@ matomo = Matomo(
 )
 
 @app.route("/foo")
-def index():
-  return render_template("index.html")
+def foo():
+  return jsonify({"page": "foo"})
 
 if __name__ == "__main__":
   app.run()
