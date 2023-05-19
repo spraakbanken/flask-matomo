@@ -1,3 +1,4 @@
+import random
 import typing
 import urllib.parse
 from threading import Thread
@@ -93,6 +94,9 @@ class Matomo:
             "ip_address": ip_address,
         }
 
+        if request.accept_languages:
+            keyword_arguments["lang"] = request.accept_languages[0][0]
+
         # Overwrite action_name, if it was configured with config()
         if self.routes_details.get(action_name) and self.routes_details.get(action_name).get(
             "action_name"
@@ -112,26 +116,50 @@ class Matomo:
 
         self.track(**keyword_arguments)
 
-    def track(self, action_name, url, user_agent=None, id=None, ip_address=None):  # noqa: A002
+    def track(
+        self,
+        action_name,
+        url,
+        user_agent=None,
+        id=None,  # noqa: A002
+        ip_address=None,
+        lang: typing.Optional[str] = None,
+    ):
         """Send request to Matomo
 
-        Args:
-            action_name (str): name of the site
-            url (str): url to track
-            user_agent (str): User-Agent of request
-            id (str): id of user
-            ip_address (str): ip address of request
+        Parameters
+        ----------
+        action_name : str
+            name of the site
+        url : str
+            url to track
+        user_agent : str
+            User-Agent of request
+        id : str
+            id of user
+        ip_address : str
+            ip address of request
+        lang : Optional[str]
+            The client's preferred language, defaults to None.
         """
         data = {
+            # site data
             "idsite": str(self.id_site),
             "rec": "1",
+            "apiv": "1",
+            "send_image": "0",
+            # request data
             "ua": user_agent,
             "action_name": action_name,
             "url": url,
             # "_id": id,
             "token_auth": self.token_auth,
             "cip": ip_address,
+            # random data
+            "rand": random.getrandbits(32),
         }
+        if lang:
+            data["lang"] = lang
         tracking_params = urllib.parse.urlencode(data)
         tracking_url = f"{self.matomo_url}?{tracking_params}"
         print(f"calling {tracking_url}")
