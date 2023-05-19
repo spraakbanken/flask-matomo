@@ -1,8 +1,10 @@
 import random
+import time
 import typing
 import urllib.parse
 from threading import Thread
 
+import flask
 import httpx
 from flask import current_app, g, request
 
@@ -58,6 +60,7 @@ class Matomo:
     def init_app(self, app):
         """Initialize app"""
         app.before_request(self.before_request)
+        app.after_request(self.after_request)
         app.teardown_request(self.teardown_request)
 
     def before_request(self):
@@ -87,43 +90,62 @@ class Matomo:
         # remote_addr.
         ip_address = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr)
 
-        keyword_arguments = {
+        data = {
+            # site data
+            "idsite": str(self.id_site),
+            "rec": "1",
+            "apiv": "1",
+            "send_image": "0",
+            # request data
+            "ua": user_agent,
             "action_name": action_name,
             "url": url,
-            "user_agent": user_agent,
-            "ip_address": ip_address,
+            # "_id": id,
+            "token_auth": self.token_auth,
+            "cip": ip_address,
+            # random data
+            "rand": random.getrandbits(32),
         }
 
         if request.accept_languages:
-            keyword_arguments["lang"] = request.accept_languages[0][0]
+            data["lang"] = request.accept_languages[0][0]
 
         # Overwrite action_name, if it was configured with config()
         if self.routes_details.get(action_name) and self.routes_details.get(action_name).get(
             "action_name"
         ):
-            keyword_arguments["action_name"] = self.routes_details.get(action_name).get(
-                "action_name"
-            )
+            data["action_name"] = self.routes_details.get(action_name).get("action_name")
 
         # Create new thread with request, because otherwise the original request will be blocked
         # Thread(target=self.track, kwargs=keyword_arguments).start()
-        g.flask_matomo = keyword_arguments
+        g.flask_matomo = {
+            "tracking": True,
+            "start_ns": time.perf_counter_ns(),
+            "tracking_data": data,
+        }
+
+    def after_request(self, response: flask.Response):
+        """Collect tracking data about current request."""
+        tracking_state = g.get("flask_matomo", {})
+        if not tracking_state.get("tracking", False):
+            return response
+
+        end_ns = time.perf_counter_ns()
+        gt_ms = (end_ns - g.flask_matomo["start_ns"]) / 1000
+        g.flask_matomo["tracking_data"]["gt_ms"] = gt_ms
+        return response
 
     def teardown_request(self, exc: typing.Optional[Exception] = None) -> None:
-        if str(request.url_rule) in self.ignored_routes:
+        tracking_state = g.get("flask_matomo", {})
+        if not tracking_state.get("tracking", False):
             return
-        keyword_arguments = g.get("flask_matomo", {})
 
-        self.track(**keyword_arguments)
+        self.track(tracking_data=tracking_state["tracking_data"])
 
     def track(
         self,
-        action_name,
-        url,
-        user_agent=None,
-        id=None,  # noqa: A002
-        ip_address=None,
-        lang: typing.Optional[str] = None,
+        *,
+        tracking_data: typing.Dict,
     ):
         """Send request to Matomo
 
@@ -142,25 +164,7 @@ class Matomo:
         lang : Optional[str]
             The client's preferred language, defaults to None.
         """
-        data = {
-            # site data
-            "idsite": str(self.id_site),
-            "rec": "1",
-            "apiv": "1",
-            "send_image": "0",
-            # request data
-            "ua": user_agent,
-            "action_name": action_name,
-            "url": url,
-            # "_id": id,
-            "token_auth": self.token_auth,
-            "cip": ip_address,
-            # random data
-            "rand": random.getrandbits(32),
-        }
-        if lang:
-            data["lang"] = lang
-        tracking_params = urllib.parse.urlencode(data)
+        tracking_params = urllib.parse.urlencode(tracking_data)
         tracking_url = f"{self.matomo_url}?{tracking_params}"
         print(f"calling {tracking_url}")
         r = self.client.get(tracking_url)
