@@ -1,6 +1,7 @@
 import json
 import logging
 import random
+import re
 import time
 import typing
 import urllib.parse
@@ -30,6 +31,8 @@ class Matomo:
         token that can be found in the area API in the settings of Matomo
     base_url : str
         url to the site that should be tracked
+    ignored_patterns : str
+        list of regexes to ignore. Default: None.
     """
 
     def __init__(
@@ -43,6 +46,7 @@ class Matomo:
         client=None,
         ignored_routes: typing.Optional[typing.List[str]] = None,
         routes_details: typing.Optional[typing.Dict[str, typing.Dict[str, str]]] = None,
+        ignored_patterns: typing.Optional[typing.List[str]] = None,
     ):
         self.app = app
         self.matomo_url = matomo_url
@@ -53,6 +57,8 @@ class Matomo:
         self.ignored_routes: typing.List[str] = ignored_routes or []
         self.routes_details: typing.Dict[str, typing.Dict[str, str]] = routes_details or {}
         self.client = client or httpx.Client()
+        if ignored_patterns:
+            self._ignored_patterns = [re.compile(pattern) for pattern in ignored_patterns]
 
         if not matomo_url:
             raise ValueError("matomo_url has to be set")
@@ -60,6 +66,7 @@ class Matomo:
             raise ValueError("id_site has to be an integer")
         if not self.token_auth:
             logger.warning("'token_auth' not given, NOT tracking ip-address")
+
         if app is not None:
             self.init_app(app)
 
@@ -72,12 +79,15 @@ class Matomo:
     def before_request(self):
         """Exectued before every request, parses details about request"""
         # Don't track track request, if user used ignore() decorator for route
-        if str(request.url_rule) in self.ignored_routes:
+        url_rule = str(request.url_rule)
+        if url_rule in self.ignored_routes:
             return
         if any(
             str(request.user_agent).startswith(ua_prefix)
             for ua_prefix in self.ignored_ua_prefixes
         ):
+            return
+        if any(pattern.match(url_rule) for pattern in self._ignored_patterns):
             return
 
         if self.base_url:
@@ -86,7 +96,7 @@ class Matomo:
             url = request.url
 
         if request.url_rule:
-            action_name = str(request.url_rule)
+            action_name = url_rule
         else:
             action_name = "Not Found"
 
