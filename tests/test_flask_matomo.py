@@ -1,3 +1,4 @@
+import copy
 import json
 import typing
 from dataclasses import dataclass
@@ -32,7 +33,6 @@ def fixture_settings() -> dict:
 
 
 def create_app(matomo_client, settings: dict) -> Flask:
-    print(f"{matomo_client!r}")
     app = Flask(__name__)
 
     app.config.update({"TESTING": True})
@@ -98,6 +98,13 @@ def fixture_app(matomo_client, settings: dict) -> Flask:
     return create_app(matomo_client, settings)
 
 
+@pytest.fixture(name="app_wo_token")
+def fixture_app_wo_token(matomo_client, settings: dict) -> Flask:
+    new_settings = copy.deepcopy(settings)
+    new_settings["token_auth"] = None
+    return create_app(matomo_client, new_settings)
+
+
 @pytest.fixture(name="expected_q")
 def fixture_expected_q(settings: dict) -> dict:
     return {
@@ -117,6 +124,12 @@ def fixture_expected_q(settings: dict) -> dict:
 @pytest.fixture(name="client")
 def fixture_client(app: Flask) -> typing.Generator[httpx.Client, None, None]:
     with httpx.Client(app=app, base_url="http://testserver") as client:
+        yield client
+
+
+@pytest.fixture(name="client_wo_token")
+def fixture_client_wo_token(app_wo_token: Flask) -> typing.Generator[httpx.Client, None, None]:
+    with httpx.Client(app=app_wo_token, base_url="http://testserver") as client:
         yield client
 
 
@@ -141,6 +154,19 @@ def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q:
 
     expected_q["url"][0] += "/foo"
     expected_q["action_name"] = ["/foo"]
+    assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+def test_middleware_works_without_token(client_wo_token, matomo_client, expected_q: dict):
+    response = client_wo_token.get("/foo")
+    assert response.status_code == 200
+
+    matomo_client.get.assert_called()  # get.assert_called()
+
+    expected_q["url"][0] += "/foo"
+    expected_q["action_name"] = ["/foo"]
+    del expected_q["cip"]
+    del expected_q["token_auth"]
     assert_query_string(str(matomo_client.get.call_args), expected_q)
 
 

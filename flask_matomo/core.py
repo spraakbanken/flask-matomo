@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 import time
 import typing
@@ -10,6 +11,8 @@ import httpx
 from flask import current_app, g, request
 
 from flask_matomo import MatomoError
+
+logger = logging.getLogger("flask_matomo")
 
 
 class Matomo:
@@ -55,6 +58,8 @@ class Matomo:
             raise ValueError("matomo_url has to be set")
         if type(id_site) != int:
             raise ValueError("id_site has to be an integer")
+        if not self.token_auth:
+            logger.warning("'token_auth' not given, NOT tracking ip-address")
         if app is not None:
             self.init_app(app)
 
@@ -102,8 +107,6 @@ class Matomo:
             "action_name": action_name,
             "url": url,
             # "_id": id,
-            "token_auth": self.token_auth,
-            "cip": ip_address,
             "cvar": {
                 "http_status_code": None,
                 "http_method": str(request.method),
@@ -111,6 +114,9 @@ class Matomo:
             # random data
             "rand": random.getrandbits(32),
         }
+        if self.token_auth:
+            data["token_auth"] = self.token_auth
+            data["cip"] = ip_address
 
         if request.accept_languages:
             data["lang"] = request.accept_languages[0][0]
