@@ -43,7 +43,7 @@ def create_app(matomo_client, settings: dict) -> Flask:
         id_site=settings["idsite"],
         token_auth=settings["token_auth"],
         ignored_routes=["/health"],
-        # exclude_patterns=[".*/old.*"],
+        ignored_patterns=[".*/old.*"],
     )
 
     @app.route("/foo")
@@ -59,8 +59,11 @@ def create_app(matomo_client, settings: dict) -> Flask:
     def heartbeat():
         return "ok"
 
-    # async def old(request):
-    #     return PlainTextResponse("old")
+    @app.route("/some/old/path")
+    @app.route("/old/path")
+    @app.route("/really/old")
+    def old():
+        return "old"
 
     @app.route("/set/custom/var")
     def custom_var():
@@ -86,9 +89,6 @@ def create_app(matomo_client, settings: dict) -> Flask:
     #     return JSONResponse({"data": data})
 
     # app.add_route("/bar", bar)
-    # app.add_route("/some/old/path", old)
-    # app.add_route("/old/path", old)
-    # app.add_route("/really/old", old)
     # app.add_route("/baz", baz, methods=["POST"])
     return app
 
@@ -224,6 +224,16 @@ def test_matomo_details_updates_action_name(client, matomo_client, expected_q: d
     expected_q["url"][0] += "/bor"
     expected_q["action_name"] = ["Foo-Bor"]
     assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+@pytest.mark.parametrize("path", ["/some/old/path", "/old/path", "/really/old"])
+def test_matomo_client_doesnt_gets_called_on_get_old(
+    client: httpx.Client, matomo_client, path: str
+):
+    response = client.get(path)
+    assert response.status_code == 200
+
+    matomo_client.get.assert_not_called()
 
 
 def test_matomo_client_gets_called_on_get_custom_var(
