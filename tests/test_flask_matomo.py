@@ -1,8 +1,10 @@
+import json
 import typing
 from dataclasses import dataclass
 from unittest import mock
 from urllib.parse import parse_qs, urlsplit
 
+import flask
 import httpx
 import pytest
 from flask import Flask
@@ -60,15 +62,16 @@ def create_app(matomo_client, settings: dict) -> Flask:
     # async def old(request):
     #     return PlainTextResponse("old")
 
-    # async def custom_var(request: Request):
-    #     if "state" not in request.scope:
-    #         request.scope["state"] = {}
-    #     request.scope["state"]["asgi_matomo"] = {
-    #         "e_a": "Playing",
-    #         "pf_srv": "123",
-    #         "cvar": {"anything": "goes"},
-    #     }
-    #     return PlainTextResponse("custom_var")
+    @app.route("/set/custom/var")
+    def custom_var():
+        if "flask_matomo" not in flask.g:
+            flask.g.flask_matomo = {"tracking": True}
+        flask.g.flask_matomo["custom_tracking_data"] = {
+            "e_a": "Playing",
+            "pf_srv": "123",
+            "cvar": {"anything": "goes"},
+        }
+        return "custom_var"
 
     @app.route("/bor")
     @matomo.details(action_name="Foo-Bor")
@@ -86,7 +89,6 @@ def create_app(matomo_client, settings: dict) -> Flask:
     # app.add_route("/some/old/path", old)
     # app.add_route("/old/path", old)
     # app.add_route("/really/old", old)
-    # app.add_route("/set/custom/var", custom_var)
     # app.add_route("/baz", baz, methods=["POST"])
     return app
 
@@ -108,7 +110,7 @@ def fixture_expected_q(settings: dict) -> dict:
         "cip": ["127.0.0.1"],
         "token_auth": ["FAKE_TOKEN"],
         "send_image": ["0"],
-        # "cvar": ['{"http_status_code": 200, "http_method": "GET"}'],
+        "cvar": ['{"http_status_code": 200, "http_method": "GET"}'],
     }
 
 
@@ -124,8 +126,11 @@ def assert_query_string(url: str, expected_q: dict) -> None:
     assert q.pop("rand") is not None
     assert q.pop("gt_ms") is not None
     assert q.pop("ua")[0].startswith("python-httpx")
+    cvar = q.pop("cvar")[0]
+    expected_cvar = expected_q.pop("cvar")[0]
 
     assert q == expected_q
+    assert json.loads(cvar) == json.loads(expected_cvar)
 
 
 def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q: dict):
@@ -192,4 +197,21 @@ def test_matomo_details_updates_action_name(client, matomo_client, expected_q: d
 
     expected_q["url"][0] += "/bor"
     expected_q["action_name"] = ["Foo-Bor"]
+    assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+def test_matomo_client_gets_called_on_get_custom_var(
+    client: httpx.Client, matomo_client, expected_q: dict
+):
+    response = client.get("/set/custom/var")
+    assert response.status_code == 200
+
+    matomo_client.get.assert_called()
+
+    expected_q["url"][0] += "/set/custom/var"
+    expected_q["action_name"] = ["/set/custom/var"]
+    expected_q["e_a"] = ["Playing"]
+    expected_q["pf_srv"] = ["123"]
+    expected_q["cvar"] = ['{"http_status_code": 200, "http_method": "GET", "anything": "goes"}']
+
     assert_query_string(str(matomo_client.get.call_args), expected_q)

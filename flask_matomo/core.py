@@ -1,3 +1,4 @@
+import json
 import random
 import time
 import typing
@@ -103,6 +104,10 @@ class Matomo:
             # "_id": id,
             "token_auth": self.token_auth,
             "cip": ip_address,
+            "cvar": {
+                "http_status_code": None,
+                "http_method": str(request.method),
+            },
             # random data
             "rand": random.getrandbits(32),
         }
@@ -133,6 +138,8 @@ class Matomo:
         end_ns = time.perf_counter_ns()
         gt_ms = (end_ns - g.flask_matomo["start_ns"]) / 1000
         g.flask_matomo["tracking_data"]["gt_ms"] = gt_ms
+        g.flask_matomo["tracking_data"]["cvar"]["http_status_code"] = response.status_code
+
         return response
 
     def teardown_request(self, exc: typing.Optional[Exception] = None) -> None:
@@ -140,7 +147,14 @@ class Matomo:
         if not tracking_state.get("tracking", False):
             return
 
-        self.track(tracking_data=tracking_state["tracking_data"])
+        tracking_data = tracking_state["tracking_data"]
+        for key, value in tracking_state.get("custom_tracking_data", {}).items():
+            if key == "cvar" and "cvar" in tracking_data:
+                tracking_data["cvar"].update(value)
+            else:
+                tracking_data[key] = value
+
+        self.track(tracking_data=tracking_data)
 
     def track(
         self,
@@ -164,7 +178,11 @@ class Matomo:
         lang : Optional[str]
             The client's preferred language, defaults to None.
         """
+        if "cvar" in tracking_data:
+            cvar = tracking_data.pop("cvar")
+            tracking_data["cvar"] = json.dumps(cvar)
         tracking_params = urllib.parse.urlencode(tracking_data)
+
         tracking_url = f"{self.matomo_url}?{tracking_params}"
         print(f"calling {tracking_url}")
         r = self.client.get(tracking_url)
