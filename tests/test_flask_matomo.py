@@ -104,7 +104,7 @@ def fixture_expected_q(settings: dict) -> dict:
         "apiv": ["1"],
         # "lang": ["None"]
         "rec": ["1"],
-        "ua": ["python-httpx/0.24.0"],
+        # "ua": ["python-httpx/0.24.0"],
         "cip": ["127.0.0.1"],
         "token_auth": ["FAKE_TOKEN"],
         "send_image": ["0"],
@@ -122,7 +122,8 @@ def assert_query_string(url: str, expected_q: dict) -> None:
     urlparts = urlsplit(url[6:-2])
     q = parse_qs(urlparts.query)
     assert q.pop("rand") is not None
-    # assert q.pop("gt_ms") is not None
+    assert q.pop("gt_ms") is not None
+    assert q.pop("ua")[0].startswith("python-httpx")
 
     assert q == expected_q
 
