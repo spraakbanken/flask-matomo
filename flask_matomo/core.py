@@ -201,10 +201,19 @@ class Matomo:
 
         tracking_url = f"{self.matomo_url}?{tracking_params}"
         print(f"calling {tracking_url}")
-        r = self.client.get(tracking_url)
+        try:
+            r = self.client.get(tracking_url)
 
-        if r.status_code >= 300:
-            raise MatomoError(r.text)
+            if r.status_code >= 300:
+                logger.error(
+                    "Tracking call failed (status_code=%d)",
+                    r.status_code,
+                    extra={"status_code": r.status_code, "text": r.text},
+                )
+                # raise MatomoError(r.text)
+        except httpx.HTTPError as exc:
+            logger.exception("Tracking call failed:", extra={"exc": exc})
+            logger.exception(exc)
 
     def ignore(self, route: typing.Optional[str] = None):
         """Ignore a route and don't track it.
