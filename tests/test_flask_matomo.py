@@ -9,6 +9,7 @@ import flask
 import httpx
 import pytest
 from flask import Flask
+from werkzeug import exceptions as werkzeug_exc
 
 from flask_matomo import Matomo
 
@@ -22,8 +23,6 @@ class Response:
 @pytest.fixture(name="matomo_client")
 def fixture_matomo_client():
     client = mock.Mock(spec=httpx.Client)
-    # session.mount("mock://", requests_mocker)
-    # requests_mocker.register_uri("GET", "mock://testserver")
 
     client.get = mock.Mock(return_value=Response(status_code=204))
     return client
@@ -83,14 +82,14 @@ def create_app(matomo_client, settings: dict) -> Flask:
     def bor():
         return "foo-bor"
 
-    # async def bar(request):
-    #     raise HTTPException(status_code=400, detail="bar")
+    @app.route("/bar")
+    def bar():
+        raise werkzeug_exc.InternalServerError()
 
     # async def baz(request):
     #     data = await request.json()
     #     return JSONResponse({"data": data})
 
-    # app.add_route("/bar", bar)
     # app.add_route("/baz", baz, methods=["POST"])
     return app
 
@@ -271,3 +270,18 @@ def test_app_works_even_if_tracking_raises(client, matomo_client):
     assert response.status_code == 200
 
     matomo_client.get.assert_called()
+
+
+def test_matomo_client_gets_called_on_get_bar(
+    client: httpx.Client, matomo_client, expected_q: dict
+):
+    response = client.get("/bar")
+    assert response.status_code >= 500
+
+    matomo_client.get.assert_called()
+
+    expected_q["url"][0] += "/bar"
+    expected_q["action_name"] = ["/bar"]
+    expected_q["cvar"][0] = expected_q["cvar"][0].replace("200", "500")
+
+    assert_query_string(str(matomo_client.get.call_args), expected_q)
