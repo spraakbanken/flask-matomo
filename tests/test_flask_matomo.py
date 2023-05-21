@@ -13,15 +13,17 @@ from flask import Flask
 from flask_matomo import Matomo
 
 
+@dataclass
+class Response:
+    status_code: int
+    text: str = "text"
+
+
 @pytest.fixture(name="matomo_client")
 def fixture_matomo_client():
     client = mock.Mock(spec=httpx.Client)
     # session.mount("mock://", requests_mocker)
     # requests_mocker.register_uri("GET", "mock://testserver")
-
-    @dataclass
-    class Response:
-        status_code: int
 
     client.get = mock.Mock(return_value=Response(status_code=204))
     return client
@@ -251,3 +253,21 @@ def test_matomo_client_gets_called_on_get_custom_var(
     expected_q["cvar"] = ['{"http_status_code": 200, "http_method": "GET", "anything": "goes"}']
 
     assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+def test_app_works_even_if_tracking_fails(client, matomo_client):
+    matomo_client.get = mock.Mock(return_value=Response(status_code=500))
+    response = client.get("/foo")
+
+    assert response.status_code == 200
+
+    matomo_client.get.assert_called()
+
+
+def test_app_works_even_if_tracking_raises(client, matomo_client):
+    matomo_client.get = mock.Mock(side_effect=httpx.HTTPError("custom"))
+    response = client.get("/foo")
+
+    assert response.status_code == 200
+
+    matomo_client.get.assert_called()
