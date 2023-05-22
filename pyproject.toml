@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flask-matomo2"
-version = "0.2.0"
+version = "0.2.1"
 description = "Track requests to your Flask server with Matomo"
 authors = ["Kristoffer Andersson <kristoffer.andersson@gu.se>"]
 license = "MIT"
