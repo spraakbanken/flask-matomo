@@ -14,7 +14,7 @@ Simple integration
 .. code-block:: python
 
   from flask import Flask, render_template
-  from flask_matomo import *
+  from flask_matomo2 import *
 
   app = Flask(__name__)
   matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",

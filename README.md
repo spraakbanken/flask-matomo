@@ -17,7 +17,7 @@ pip install flask-matomo
 
 ```python
 from flask import Flask, jsonify
-from flask_matomo import *
+from flask_matomo2 import Matomo
 
 app = Flask(__name__)
 matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
@@ -45,7 +45,7 @@ You can provide details to a route in 2 ways, first by using the `matomo.details
 
 ```python
 from flask import Flask, jsonify
-from flask_matomo import *
+from flask_matomo2 import Matomo
 
 app = Flask(__name__)
 matomo = Matomo(app, matomo_url="https://matomo.mydomain.com",
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 or by giving details to the Matomo constructor:
 ```python
 from flask import Flask, jsonify
-from flask_matomo import *
+from flask_matomo2 import Matomo
 
 app = Flask(__name__)
 matomo = Matomo(

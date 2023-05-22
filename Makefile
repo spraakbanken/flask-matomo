@@ -52,7 +52,7 @@ unit_test_dirs := tests
 e2e_test_dirs := tests
 all_test_dirs := tests
 
-default_cov := "--cov=flask_matomo"
+default_cov := "--cov=flask_matomo2"
 cov_report := "term-missing"
 cov := ${default_cov}
 
@@ -69,7 +69,7 @@ test-w-coverage:
 
 .PHONY: lint
 lint:
-	${INVENV} ruff ${flags} flask_matomo tests
+	${INVENV} ruff ${flags} flask_matomo2 tests
 
 .PHONY: serve-docs
 serve-docs:
@@ -77,7 +77,7 @@ serve-docs:
 
 .PHONY: type-check
 type-check:
-	${INVENV} mypy --config-file mypy.ini -p flask_matomo
+	${INVENV} mypy --config-file mypy.ini -p flask_matomo2
 
 .PHONY: publish
 publish:

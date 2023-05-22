@@ -11,7 +11,7 @@ import pytest
 from flask import Flask
 from werkzeug import exceptions as werkzeug_exc
 
-from flask_matomo import Matomo
+from flask_matomo2 import Matomo
 
 
 @dataclass
@@ -68,9 +68,9 @@ def create_app(matomo_client, settings: dict) -> Flask:
 
     @app.route("/set/custom/var")
     def custom_var():
-        if "flask_matomo" not in flask.g:
-            flask.g.flask_matomo = {"tracking": True}
-        flask.g.flask_matomo["custom_tracking_data"] = {
+        if "flask_matomo2" not in flask.g:
+            flask.g.flask_matomo2 = {"tracking": True}
+        flask.g.flask_matomo2["custom_tracking_data"] = {
             "e_a": "Playing",
             "pf_srv": "123",
             "cvar": {"anything": "goes"},

@@ -5,15 +5,12 @@ import re
 import time
 import typing
 import urllib.parse
-from threading import Thread
 
 import flask
 import httpx
-from flask import current_app, g, request
+from flask import g, request
 
-from flask_matomo import MatomoError
-
-logger = logging.getLogger("flask_matomo")
+logger = logging.getLogger("flask_matomo2")
 
 
 class Matomo:
@@ -139,7 +136,7 @@ class Matomo:
 
         # Create new thread with request, because otherwise the original request will be blocked
         # Thread(target=self.track, kwargs=keyword_arguments).start()
-        g.flask_matomo = {
+        g.flask_matomo2 = {
             "tracking": True,
             "start_ns": time.perf_counter_ns(),
             "tracking_data": data,
@@ -147,19 +144,19 @@ class Matomo:
 
     def after_request(self, response: flask.Response):
         """Collect tracking data about current request."""
-        tracking_state = g.get("flask_matomo", {})
+        tracking_state = g.get("flask_matomo2", {})
         if not tracking_state.get("tracking", False):
             return response
 
         end_ns = time.perf_counter_ns()
-        gt_ms = (end_ns - g.flask_matomo["start_ns"]) / 1000
-        g.flask_matomo["tracking_data"]["gt_ms"] = gt_ms
-        g.flask_matomo["tracking_data"]["cvar"]["http_status_code"] = response.status_code
+        gt_ms = (end_ns - g.flask_matomo2["start_ns"]) / 1000
+        g.flask_matomo2["tracking_data"]["gt_ms"] = gt_ms
+        g.flask_matomo2["tracking_data"]["cvar"]["http_status_code"] = response.status_code
 
         return response
 
     def teardown_request(self, exc: typing.Optional[Exception] = None) -> None:
-        tracking_state = g.get("flask_matomo", {})
+        tracking_state = g.get("flask_matomo2", {})
         if not tracking_state.get("tracking", False):
             return
 
