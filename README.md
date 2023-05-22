@@ -10,7 +10,30 @@ Forked from [LucasHild/flask-matomo](https://github.com/LucasHild/flask-matomo).
 ## Installation
 
 ```
-pip install flask-matomo
+pip install flask-matomo2
+```
+
+## Using flask-matomo2 in your project
+
+Simply add `flask-matomo2` to your dependencies:
+
+```toml
+# pyproject.toml
+dependencies = [
+  "flask-matomo2",
+]
+
+```
+### Using Poetry
+
+```bash
+poetry add flask-matomo2
+```
+
+### Using PDM
+
+```bash
+pdm add flask-matomo2
 ```
 
 ## Usage
