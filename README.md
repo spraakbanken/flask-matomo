@@ -95,21 +95,21 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
-* 24 track failing request. PR [#31](https://github.com/spraakbanken/flask-matomo2/pull/31) by [@kod-kristoff](https://github.com/kod-kristoff).
-* fix: handle request even if tracking fails. PR [#30](https://github.com/spraakbanken/flask-matomo2/pull/30) by [@kod-kristoff](https://github.com/kod-kristoff).
-* feat: ignore routes by regex. PR [#29](https://github.com/spraakbanken/flask-matomo2/pull/29) by [@kod-kristoff](https://github.com/kod-kristoff).
-* feat: make token_auth optional. PR [#28](https://github.com/spraakbanken/flask-matomo2/pull/28) by [@kod-kristoff](https://github.com/kod-kristoff).
-* feat: track dynamic request data. PR [#27](https://github.com/spraakbanken/flask-matomo2/pull/27) by [@kod-kristoff](https://github.com/kod-kristoff).
-* feat: also track request time. PR [#26](https://github.com/spraakbanken/flask-matomo2/pull/26) by [@kod-kristoff](https://github.com/kod-kristoff).
-* feat: extend tracked variables. PR [#25](https://github.com/spraakbanken/flask-matomo2/pull/25) by [@kod-kristoff](https://github.com/kod-kristoff).
-* fix details decorator. PR [#19](https://github.com/spraakbanken/flask-matomo2/pull/19) by [@kod-kristoff](https://github.com/kod-kristoff).
 
+## 0.2.0 - 2023-05-22
 ### Changed
 
 - Track original IP address if request was forwarded by proxy. [Tanikai/flask-matomo](https://github.com/Tanikai/flask-matomo) by [@Tanakai](https://github.com/Tanakai).
 - Change ignored routes to compare against rules instead of endpoint. [MSU-Libraries/flask-matomo](https://github.com/MSU-Libraries/flask-matomo) by [@meganschanz](https://github.com/meganschanz).
 - Add ignored UserAgent prefix; set action to be url_rule. [MSU-Libraries/flask-matomo](https://github.com/MSU-Libraries/flask-matomo) by [@natecollins](https://github.com/natecollins).
 - Fix matomo.ignore decorator.
+- Handle request even if tracking fails. PR [#30](https://github.com/spraakbanken/flask-matomo2/pull/30) by [@kod-kristoff](https://github.com/kod-kristoff).
+- Ignore routes by regex. PR [#29](https://github.com/spraakbanken/flask-matomo2/pull/29) by [@kod-kristoff](https://github.com/kod-kristoff).
+- Make token_auth optional. PR [#28](https://github.com/spraakbanken/flask-matomo2/pull/28) by [@kod-kristoff](https://github.com/kod-kristoff).
+- Track dynamic request data. PR [#27](https://github.com/spraakbanken/flask-matomo2/pull/27) by [@kod-kristoff](https://github.com/kod-kristoff).
+- Also track request time. PR [#26](https://github.com/spraakbanken/flask-matomo2/pull/26) by [@kod-kristoff](https://github.com/kod-kristoff).
+- Extend tracked variables. PR [#25](https://github.com/spraakbanken/flask-matomo2/pull/25) by [@kod-kristoff](https://github.com/kod-kristoff).
+- fix matomo.details decorator. PR [#19](https://github.com/spraakbanken/flask-matomo2/pull/19) by [@kod-kristoff](https://github.com/kod-kristoff).
 
 
 ## 0.1.0

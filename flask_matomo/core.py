@@ -131,11 +131,11 @@ class Matomo:
         if request.accept_languages:
             data["lang"] = request.accept_languages[0][0]
 
-        # Overwrite action_name, if it was configured with config()
-        if self.routes_details.get(action_name) and self.routes_details.get(action_name).get(
+        # Overwrite action_name, if it was configured with details()
+        if self.routes_details.get(action_name) and self.routes_details.get(action_name, {}).get(
             "action_name"
         ):
-            data["action_name"] = self.routes_details.get(action_name).get("action_name")
+            data["action_name"] = self.routes_details.get(action_name, {}).get("action_name")
 
         # Create new thread with request, because otherwise the original request will be blocked
         # Thread(target=self.track, kwargs=keyword_arguments).start()
@@ -259,7 +259,7 @@ class Matomo:
             @app.route("/users")
             @matomo.details(action_name="Users")
             def all_users():
-                return render_template("users.html")
+                return jsonify(users=[...])
         """
 
         def wrap(f):
