@@ -108,6 +108,7 @@ jobs:
   publish:
     needs: [checks, tests]
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
