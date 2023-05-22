@@ -70,7 +70,7 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
         task:
           - name: Run tests
-            run: make all-tests
+            run: make test
 
     steps:
       #----------------------------------------------
