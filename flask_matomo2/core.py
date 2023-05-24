@@ -134,8 +134,6 @@ class Matomo:
         ):
             data["action_name"] = self.routes_details.get(action_name, {}).get("action_name")
 
-        # Create new thread with request, because otherwise the original request will be blocked
-        # Thread(target=self.track, kwargs=keyword_arguments).start()
         g.flask_matomo2 = {
             "tracking": True,
             "start_ns": time.perf_counter_ns(),
@@ -159,7 +157,7 @@ class Matomo:
         tracking_state = g.get("flask_matomo2", {})
         if not tracking_state.get("tracking", False):
             return
-
+        print(f"{tracking_state=}")
         tracking_data = tracking_state["tracking_data"]
         for key, value in tracking_state.get("custom_tracking_data", {}).items():
             if key == "cvar" and "cvar" in tracking_data:
