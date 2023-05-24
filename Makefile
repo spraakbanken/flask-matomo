@@ -107,3 +107,6 @@ bumpversion:
 
 build:
 	poetry build
+
+tests/requirements.txt: pyproject.toml
+	poetry export --with=dev --without-hashes --output=$@
