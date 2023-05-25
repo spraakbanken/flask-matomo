@@ -44,18 +44,22 @@ class Matomo:
         ignored_routes: typing.Optional[typing.List[str]] = None,
         routes_details: typing.Optional[typing.Dict[str, typing.Dict[str, str]]] = None,
         ignored_patterns: typing.Optional[typing.List[str]] = None,
+        ignored_ua_patterns: typing.Optional[typing.List[str]] = None,
     ):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
-        self.ignored_ua_prefixes: typing.List[str] = []
+        self.ignored_ua_patterns = []
+        if ignored_ua_patterns:
+            self.ignored_ua_patterns = [re.compile(pattern) for pattern in ignored_ua_patterns]
         self.ignored_routes: typing.List[str] = ignored_routes or []
         self.routes_details: typing.Dict[str, typing.Dict[str, str]] = routes_details or {}
         self.client = client or httpx.Client()
+        self.ignored_patterns = []
         if ignored_patterns:
-            self._ignored_patterns = [re.compile(pattern) for pattern in ignored_patterns]
+            self.ignored_patterns = [re.compile(pattern) for pattern in ignored_patterns]
 
         if not matomo_url:
             raise ValueError("matomo_url has to be set")
@@ -78,11 +82,10 @@ class Matomo:
         if url_rule in self.ignored_routes:
             return
         if any(
-            str(request.user_agent).startswith(ua_prefix)
-            for ua_prefix in self.ignored_ua_prefixes
+            ua_pattern.match(str(request.user_agent)) for ua_pattern in self.ignored_ua_patterns
         ):
             return
-        if any(pattern.match(url_rule) for pattern in self._ignored_patterns):
+        if any(pattern.match(url_rule) for pattern in self.ignored_patterns):
             return
 
         url = self.base_url + request.path if self.base_url else request.url
