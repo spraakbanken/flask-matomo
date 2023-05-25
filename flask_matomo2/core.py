@@ -59,7 +59,7 @@ class Matomo:
 
         if not matomo_url:
             raise ValueError("matomo_url has to be set")
-        if type(id_site) != int:
+        if isinstance(id_site, int):
             raise ValueError("id_site has to be an integer")
         if not self.token_auth:
             logger.warning("'token_auth' not given, NOT tracking ip-address")
@@ -87,16 +87,8 @@ class Matomo:
         if any(pattern.match(url_rule) for pattern in self._ignored_patterns):
             return
 
-        if self.base_url:
-            url = self.base_url + request.path
-        else:
-            url = request.url
-
-        if request.url_rule:
-            action_name = url_rule
-        else:
-            action_name = "Not Found"
-
+        url = self.base_url + request.path if self.base_url else request.url
+        action_name = url_rule if request.url_rule else "Not Found"
         user_agent = request.user_agent
         # If request was forwarded (e.g. by a proxy), then get origin IP from
         # HTTP_X_FORWARDED_FOR. If this header field doesn't exist, return
@@ -157,7 +149,7 @@ class Matomo:
         tracking_state = g.get("flask_matomo2", {})
         if not tracking_state.get("tracking", False):
             return
-        print(f"{tracking_state=}")
+        logger.debug(f"{tracking_state=}")
         tracking_data = tracking_state["tracking_data"]
         for key, value in tracking_state.get("custom_tracking_data", {}).items():
             if key == "cvar" and "cvar" in tracking_data:
@@ -195,7 +187,7 @@ class Matomo:
         tracking_params = urllib.parse.urlencode(tracking_data)
 
         tracking_url = f"{self.matomo_url}?{tracking_params}"
-        print(f"calling {tracking_url}")
+        logger.debug(f"calling {tracking_url}")
         try:
             r = self.client.get(tracking_url)
 
