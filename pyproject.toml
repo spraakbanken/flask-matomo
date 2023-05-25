@@ -2,7 +2,13 @@
 name = "flask-matomo2"
 version = "0.3.0"
 description = "Track requests to your Flask server with Matomo"
-authors = ["Kristoffer Andersson <kristoffer.andersson@gu.se>"]
+authors = [
+    "Lucas Hild <contact@lucas-hild.de>",
+    "Kristoffer Andersson <kristoffer.andersson@gu.se>"
+]
+maintainers = [
+    "Kristoffer Andersson <kristoffer.andersson@gu.se>"
+]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "flask_matomo2"}]
@@ -17,6 +23,7 @@ classifiers=[
 ]
 homepage = "https://spraakbanken.gu.se"
 repository = "https://github.com/spraakbanken/flask-matomo2"
+documentation = "http://flask-matomo2.readthedocs.io/"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/spraakbanken/flask-matomo2/issues"

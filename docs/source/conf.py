@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = "flask-matomo2"
-copyright = "2018, Lucas Hild.2023 Språkbanken, Göteborgs universitet."
-author = "Lucas Hild. Kristoffer Andersson"
+copyright = "(2018) Lucas Hild, (2023) Språkbanken, Göteborgs universitet."
+author = "Lucas Hild, Kristoffer Andersson"
 
 # The short X.Y version
 version = ""
