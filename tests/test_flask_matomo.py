@@ -1,5 +1,6 @@
 import copy
 import json
+import time
 import typing
 from dataclasses import dataclass
 from unittest import mock
@@ -12,6 +13,7 @@ from flask import Flask
 from werkzeug import exceptions as werkzeug_exc
 
 from flask_matomo2 import Matomo
+from flask_matomo2.trackers import PerfMsTracker
 
 
 @dataclass
@@ -70,11 +72,16 @@ def create_app(matomo_client, settings: dict) -> Flask:
     def custom_var():
         if "flask_matomo2" not in flask.g:
             flask.g.flask_matomo2 = {"tracking": True}
-        flask.g.flask_matomo2["custom_tracking_data"] = {
-            "e_a": "Playing",
-            "pf_srv": "123",
-            "cvar": {"anything": "goes"},
-        }
+        # flask.g.flask_matomo2["custom_tracking_data"] = {
+        #     "e_a": "Playing",
+        #     "cvar": {"anything": "goes"},
+        # }
+        with PerfMsTracker(scope=flask.g.flask_matomo2, key="pf_srv"):
+            flask.g.flask_matomo2["custom_tracking_data"] = {
+                "e_a": "Playing",
+                "cvar": {"anything": "goes"},
+            }
+            time.sleep(0.1)
         return "custom_var"
 
     @app.route("/bor")
@@ -142,6 +149,9 @@ def assert_query_string(url: str, expected_q: dict) -> None:
     assert q.pop("ua")[0].startswith("python-httpx")
     cvar = q.pop("cvar")[0]
     expected_cvar = expected_q.pop("cvar")[0]
+    if "pf_srv" in expected_q:
+        expected_lower_limit = expected_q.pop("pf_srv")
+        assert float(q.pop("pf_srv")[0]) >= expected_lower_limit
 
     assert q == expected_q
     assert json.loads(cvar) == json.loads(expected_cvar)
@@ -248,7 +258,7 @@ def test_matomo_client_gets_called_on_get_custom_var(
     expected_q["url"][0] += "/set/custom/var"
     expected_q["action_name"] = ["/set/custom/var"]
     expected_q["e_a"] = ["Playing"]
-    expected_q["pf_srv"] = ["123"]
+    expected_q["pf_srv"] = 90000
     expected_q["cvar"] = ['{"http_status_code": 200, "http_method": "GET", "anything": "goes"}']
 
     assert_query_string(str(matomo_client.get.call_args), expected_q)
