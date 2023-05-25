@@ -59,8 +59,6 @@ class Matomo:
 
         if not matomo_url:
             raise ValueError("matomo_url has to be set")
-        if isinstance(id_site, int):
-            raise ValueError("id_site has to be an integer")
         if not self.token_auth:
             logger.warning("'token_auth' not given, NOT tracking ip-address")
 
