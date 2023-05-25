@@ -11,6 +11,7 @@ import httpx
 import pytest
 from flask import Flask
 from werkzeug import exceptions as werkzeug_exc
+from werkzeug.wrappers import response
 
 from flask_matomo2 import Matomo
 from flask_matomo2.trackers import PerfMsTracker
@@ -47,6 +48,7 @@ def create_app(matomo_client, settings: dict) -> Flask:
         token_auth=settings["token_auth"],
         ignored_routes=["/health"],
         ignored_patterns=[".*/old.*"],
+        ignored_ua_patterns=["creepy-bot.*"],
     )
 
     @app.route("/foo")
@@ -161,11 +163,18 @@ def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q:
     response = client.get("/foo")
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()  # get.assert_called()
+    matomo_client.get.assert_called()
 
     expected_q["url"][0] += "/foo"
     expected_q["action_name"] = ["/foo"]
     assert_query_string(str(matomo_client.get.call_args), expected_q)
+
+
+def test_matomo_client_is_not_called_when_user_agent_should_be_ignored(client, matomo_client):
+    response = client.get("/foo", headers={"user-agent": "creepy-bot-with-suffix"})
+    assert response.status_code == 200
+
+    matomo_client.get.assert_not_called()
 
 
 def test_middleware_works_without_token(client_wo_token, matomo_client, expected_q: dict):

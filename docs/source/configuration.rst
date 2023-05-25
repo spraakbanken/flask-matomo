@@ -55,3 +55,15 @@ You can also prevent all routes that match a pattern from being tracked, by givi
     ...,
     ignored_patterns=["/.*admin.*"],
   )
+
+Ignore tracking based on user-agent regex
+-----------------------------------------
+
+You can skip tracking requests made with specific user-agents.
+
+.. code-block:: python
+
+  matomo = Matomo(
+    ...,
+    ignored_ua_patterns=[".*bot.*"],
+  )
