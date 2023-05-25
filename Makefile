@@ -28,8 +28,9 @@ help:
 	@echo "run-doc-tests"
 	@echo "   run all tests"
 	@echo ""
-	@echo "test-w-coverage"
+	@echo "test-w-coverage [cov_report]"
 	@echo "   run all tests with coverage collection"
+	@echo "   cov_report=COV-REPORT	forwarded to pytest-cov. Defaults to 'term-missing'."
 	@echo ""
 	@echo "lint"
 	@echo "   lint the code"
@@ -39,6 +40,16 @@ help:
 	@echo ""
 	@echo "fmt"
 	@echo "   run formatter on all code"
+	@echo ""
+	@echo "bumpversion [part=PART]"
+	@echo "   bumps the given PART of the version"
+	@echo "   this will bump the version, commit and tag with the new version"
+	@echo "   part=PART	can be patch, minor or major. Defaults to patch."
+	@echo ""
+	@echo "publish [branch=BRANCH]"
+	@echo "   pushes the given BRANCH with tags for starting CI-publish"
+	@echo "   branch=BRANCH	the branch to publish from. Defaults to main."
+	@echo ""
 
 dev: install-dev
 install-dev:
@@ -79,9 +90,10 @@ serve-docs:
 type-check:
 	${INVENV} mypy --config-file mypy.ini -p flask_matomo2
 
+branch := "main"
 .PHONY: publish
 publish:
-	git push origin main --tags
+	git push origin ${branch} --tags
 
 .PHONY: clean clean-pyc
 clean: clean-pyc
