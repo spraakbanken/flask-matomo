@@ -19,14 +19,14 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Flask-Matomo"
-copyright = "2018, Lucas Hild"
-author = "Lucas Hild"
+project = "flask-matomo2"
+copyright = "2018, Lucas Hild.2023 Språkbanken, Göteborgs universitet."
+author = "Lucas Hild. Kristoffer Andersson"
 
 # The short X.Y version
 version = ""
 # The full version, including alpha/beta/rc tags
-release = "1.0.0"
+release = "0.3.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -105,7 +105,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "Flask-Matomodoc"
+htmlhelp_basename = "flask-matomo2doc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -129,7 +129,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "Flask-Matomo.tex", "Flask-Matomo Documentation", "Lucas Hild", "manual"),
+    (
+        master_doc,
+        "flask-matomo2.tex",
+        "flask-matomo2 Documentation",
+        "Språkbanken Text",
+        "manual",
+    ),
 ]
 
 
@@ -137,7 +143,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "flask-matomo", "Flask-Matomo Documentation", [author], 1)]
+man_pages = [(master_doc, "flask-matomo2", "flask-matomo2 Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -148,10 +154,10 @@ man_pages = [(master_doc, "flask-matomo", "Flask-Matomo Documentation", [author]
 texinfo_documents = [
     (
         master_doc,
-        "Flask-Matomo",
-        "Flask-Matomo Documentation",
+        "flask-matomo2",
+        "flask-matomo2 Documentation",
         author,
-        "Flask-Matomo",
+        "flask-matomo2",
         "One line description of project.",
         "Miscellaneous",
     ),
