@@ -118,6 +118,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+* Add PerfMsTracker. PR [#33](https://github.com/spraakbanken/flask-matomo2/pull/33) by [@kod-kristoff](https://github.com/kod-kristoff).
 
 ## 0.2.0 - 2023-05-22
 ### Changed
