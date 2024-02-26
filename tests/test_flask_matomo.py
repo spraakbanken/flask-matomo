@@ -37,10 +37,11 @@ def fixture_settings() -> dict:
 
 
 def create_app(matomo_client, settings: dict) -> Flask:
+    matomo = Matomo.activate_later()
     app = Flask(__name__)
 
     app.config.update({"TESTING": True})
-    matomo = Matomo(
+    matomo.activate(
         app,
         client=matomo_client,
         matomo_url="http://trackingserver",

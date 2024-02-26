@@ -46,6 +46,37 @@ class Matomo:
         ignored_patterns: typing.Optional[typing.List[str]] = None,
         ignored_ua_patterns: typing.Optional[typing.List[str]] = None,
     ):
+        self.activate(
+            app=app,
+            matomo_url=matomo_url,
+            id_site=id_site,
+            token_auth=token_auth,
+            base_url=base_url,
+            client=client,
+            ignored_routes=ignored_routes,
+            routes_details=routes_details,
+            ignored_patterns=ignored_patterns,
+            ignored_ua_patterns=ignored_ua_patterns,
+        )
+
+    @classmethod
+    def activate_later(cls) -> "Matomo":
+        return cls(matomo_url="NOT SET")
+
+    def activate(
+        self,
+        app=None,
+        *,
+        matomo_url: str,
+        id_site=None,
+        token_auth=None,
+        base_url=None,
+        client=None,
+        ignored_routes: typing.Optional[typing.List[str]] = None,
+        routes_details: typing.Optional[typing.Dict[str, typing.Dict[str, str]]] = None,
+        ignored_patterns: typing.Optional[typing.List[str]] = None,
+        ignored_ua_patterns: typing.Optional[typing.List[str]] = None,
+    ):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
@@ -53,13 +84,19 @@ class Matomo:
         self.base_url = base_url.strip("/") if base_url else base_url
         self.ignored_ua_patterns = []
         if ignored_ua_patterns:
-            self.ignored_ua_patterns = [re.compile(pattern) for pattern in ignored_ua_patterns]
+            self.ignored_ua_patterns = [
+                re.compile(pattern) for pattern in ignored_ua_patterns
+            ]
         self.ignored_routes: typing.List[str] = ignored_routes or []
-        self.routes_details: typing.Dict[str, typing.Dict[str, str]] = routes_details or {}
+        self.routes_details: typing.Dict[str, typing.Dict[str, str]] = (
+            routes_details or {}
+        )
         self.client = client or httpx.Client()
         self.ignored_patterns = []
         if ignored_patterns:
-            self.ignored_patterns = [re.compile(pattern) for pattern in ignored_patterns]
+            self.ignored_patterns = [
+                re.compile(pattern) for pattern in ignored_patterns
+            ]
 
         if not matomo_url:
             raise ValueError("matomo_url has to be set")
@@ -76,13 +113,14 @@ class Matomo:
         app.teardown_request(self.teardown_request)
 
     def before_request(self):
-        """Exectued before every request, parses details about request"""
+        """Executed before every request, parses details about request"""
         # Don't track track request, if user used ignore() decorator for route
         url_rule = str(request.url_rule)
         if url_rule in self.ignored_routes:
             return
         if any(
-            ua_pattern.match(str(request.user_agent)) for ua_pattern in self.ignored_ua_patterns
+            ua_pattern.match(str(request.user_agent))
+            for ua_pattern in self.ignored_ua_patterns
         ):
             return
         if any(pattern.match(url_rule) for pattern in self.ignored_patterns):
@@ -122,10 +160,12 @@ class Matomo:
             data["lang"] = request.accept_languages[0][0]
 
         # Overwrite action_name, if it was configured with details()
-        if self.routes_details.get(action_name) and self.routes_details.get(action_name, {}).get(
-            "action_name"
-        ):
-            data["action_name"] = self.routes_details.get(action_name, {}).get("action_name")
+        if self.routes_details.get(action_name) and self.routes_details.get(
+            action_name, {}
+        ).get("action_name"):
+            data["action_name"] = self.routes_details.get(action_name, {}).get(
+                "action_name"
+            )
 
         g.flask_matomo2 = {
             "tracking": True,
@@ -142,7 +182,9 @@ class Matomo:
         end_ns = time.perf_counter_ns()
         gt_ms = (end_ns - g.flask_matomo2["start_ns"]) / 1000
         g.flask_matomo2["tracking_data"]["gt_ms"] = gt_ms
-        g.flask_matomo2["tracking_data"]["cvar"]["http_status_code"] = response.status_code
+        g.flask_matomo2["tracking_data"]["cvar"][
+            "http_status_code"
+        ] = response.status_code
 
         return response
 
