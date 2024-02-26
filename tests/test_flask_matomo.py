@@ -11,7 +11,6 @@ import httpx
 import pytest
 from flask import Flask
 from werkzeug import exceptions as werkzeug_exc
-from werkzeug.wrappers import response
 
 from flask_matomo2 import Matomo
 from flask_matomo2.trackers import PerfMsTracker
@@ -37,10 +36,11 @@ def fixture_settings() -> dict:
 
 
 def create_app(matomo_client, settings: dict) -> Flask:
+    matomo = Matomo.activate_later()
     app = Flask(__name__)
 
     app.config.update({"TESTING": True})
-    matomo = Matomo(
+    matomo.activate(
         app,
         client=matomo_client,
         matomo_url="http://trackingserver",
@@ -176,18 +176,14 @@ def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q:
     assert_query_string(str(matomo_client.get.call_args), expected_q)
 
 
-def test_matomo_client_is_not_called_when_user_agent_should_be_ignored(
-    client, matomo_client
-):
+def test_matomo_client_is_not_called_when_user_agent_should_be_ignored(client, matomo_client):
     response = client.get("/foo", headers={"user-agent": "creepy-bot-with-suffix"})
     assert response.status_code == 200
 
     matomo_client.get.assert_not_called()
 
 
-def test_middleware_works_without_token(
-    client_wo_token, matomo_client, expected_q: dict
-):
+def test_middleware_works_without_token(client_wo_token, matomo_client, expected_q: dict):
     response = client_wo_token.get("/foo")
     assert response.status_code == 200
 
@@ -200,9 +196,7 @@ def test_middleware_works_without_token(
     assert_query_string(str(matomo_client.get.call_args), expected_q)
 
 
-def test_lang_gets_tracked_if_accept_language_is_set(
-    client, matomo_client, expected_q: dict
-):
+def test_lang_gets_tracked_if_accept_language_is_set(client, matomo_client, expected_q: dict):
     response = client.get("/foo", headers={"accept-language": "sv"})
     assert response.status_code == 200
 
@@ -280,9 +274,7 @@ def test_matomo_client_gets_called_on_get_custom_var(
     expected_q["action_name"] = ["/set/custom/var"]
     expected_q["e_a"] = ["Playing"]
     expected_q["pf_srv"] = 90000
-    expected_q["cvar"] = [
-        '{"http_status_code": 200, "http_method": "GET", "anything": "goes"}'
-    ]
+    expected_q["cvar"] = ['{"http_status_code": 200, "http_method": "GET", "anything": "goes"}']
 
     assert_query_string(str(matomo_client.get.call_args), expected_q)
 

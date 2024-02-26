@@ -46,6 +46,37 @@ class Matomo:
         ignored_patterns: typing.Optional[typing.List[str]] = None,
         ignored_ua_patterns: typing.Optional[typing.List[str]] = None,
     ):
+        self.activate(
+            app=app,
+            matomo_url=matomo_url,
+            id_site=id_site,
+            token_auth=token_auth,
+            base_url=base_url,
+            client=client,
+            ignored_routes=ignored_routes,
+            routes_details=routes_details,
+            ignored_patterns=ignored_patterns,
+            ignored_ua_patterns=ignored_ua_patterns,
+        )
+
+    @classmethod
+    def activate_later(cls) -> "Matomo":
+        return cls(matomo_url="NOT SET")
+
+    def activate(
+        self,
+        app=None,
+        *,
+        matomo_url: str,
+        id_site=None,
+        token_auth=None,
+        base_url=None,
+        client=None,
+        ignored_routes: typing.Optional[typing.List[str]] = None,
+        routes_details: typing.Optional[typing.Dict[str, typing.Dict[str, str]]] = None,
+        ignored_patterns: typing.Optional[typing.List[str]] = None,
+        ignored_ua_patterns: typing.Optional[typing.List[str]] = None,
+    ):
         self.app = app
         self.matomo_url = matomo_url
         self.id_site = id_site
@@ -76,7 +107,7 @@ class Matomo:
         app.teardown_request(self.teardown_request)
 
     def before_request(self):
-        """Exectued before every request, parses details about request"""
+        """Executed before every request, parses details about request"""
         # Don't track track request, if user used ignore() decorator for route
         url_rule = str(request.url_rule)
         if url_rule in self.ignored_routes:
