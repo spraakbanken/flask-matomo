@@ -119,6 +119,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+* extend ci. PR [#47](https://github.com/spraakbanken/flask-matomo2/pull/47) by [@kod-kristoff](https://github.com/kod-kristoff).
 * build(deps-dev): update ruff requirement from 0.0.267 to 0.0.270. PR [#35](https://github.com/spraakbanken/flask-matomo2/pull/35) by [@dependabot[bot]](https://github.com/apps/dependabot).
 * fix: allow for dont tracking based on user-agent. PR [#34](https://github.com/spraakbanken/flask-matomo2/pull/34) by [@kod-kristoff](https://github.com/kod-kristoff).
 ## 0.3.0 - 2023-05-25
