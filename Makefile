@@ -1,36 +1,29 @@
-.DEFAULT: test
 
-PLATFORM := ${shell uname -o}
-
-
-ifeq (${VIRTUAL_ENV},)
-  INVENV = poetry run
-else
-  INVENV =
-endif
-
-${info Platform: ${PLATFORM}}
-
+# use this Makefile as base in your project by running
+# git remote add make https://github.com/spraakbanken/python-pdm-make-conf
+# git fetch make
+# git merge --allow-unrelated-histories make/main
+#
+# To later update this makefile:
+# git fetch make
+# git merge make/main
+#
+.default: help
 
 .PHONY: help
 help:
 	@echo "usage:"
-	@echo ""
 	@echo "dev | install-dev"
 	@echo "   setup development environment"
 	@echo ""
-	@echo "install-ci"
-	@echo "   setup CI environment"
+	@echo "info"
+	@echo "   print info about the system and project"
 	@echo ""
-	@echo "test | run-all-tests"
+	@echo "test"
 	@echo "   run all tests"
 	@echo ""
-	@echo "run-doc-tests"
-	@echo "   run all tests"
-	@echo ""
-	@echo "test-w-coverage [cov_report]"
-	@echo "   run all tests with coverage collection"
-	@echo "   cov_report=COV-REPORT	forwarded to pytest-cov. Defaults to 'term-missing'."
+	@echo "test-w-coverage [cov=] [cov_report=]"
+	@echo "   run all tests with coverage collection. (Default: cov_report='term-missing', cov='--cov=${PROJECT_SRC}')"
 	@echo ""
 	@echo "lint"
 	@echo "   lint the code"
@@ -39,86 +32,98 @@ help:
 	@echo "   check types"
 	@echo ""
 	@echo "fmt"
-	@echo "   run formatter on all code"
+	@echo "   format the code"
 	@echo ""
-	@echo "bumpversion [part=PART]"
-	@echo "   bumps the given PART of the version"
-	@echo "   this will bump the version, commit and tag with the new version"
-	@echo "   part=PART	can be patch, minor or major. Defaults to patch."
+	@echo "check-fmt"
+	@echo "   check that the code is formatted"
 	@echo ""
-	@echo "publish [branch=BRANCH]"
-	@echo "   pushes the given BRANCH with tags for starting CI-publish"
-	@echo "   branch=BRANCH	the branch to publish from. Defaults to main."
+	@echo "bumpversion [part=]"
+	@echo "   bumps the given part of the version of the project. (Default: part='patch')"
+	@echo ""
+	@echo "publish [branch=]"
+	@echo "   pushes the given branch including tags to origin, for CI to publish based on tags. (Default: branch='main')"
+	@echo "   Typically used after `make bumpversion`"
+	@echo ""
+	@echo "prepare-release"
+	@echo "   run tasks to prepare a release"
 	@echo ""
 
-dev: install-dev
-install-dev:
-	poetry install --without ci
+PLATFORM := `uname -o`
+REPO := "flask-matomo2"
+PROJECT_SRC := "src/flask_matomo2"
 
-# setup CI environment
-install-ci: install-dev
-	poetry install --only ci
+ifeq (${VIRTUAL_ENV},)
+  VENV_NAME = .venv
+  INVENV = pdm run
+else
+  VENV_NAME = ${VIRTUAL_ENV}
+  INVENV =
+endif
 
-unit_test_dirs := tests
-e2e_test_dirs := tests
-all_test_dirs := tests
-
-default_cov := "--cov=flask_matomo2"
+default_cov := "--cov=${PROJECT_SRC}"
 cov_report := "term-missing"
 cov := ${default_cov}
 
-tests := ${unit_test_dirs}
-all_tests := ${all_test_dirs}
+all_tests := tests
+tests := tests
+
+info:
+	@echo "Platform: ${PLATFORM}"
+	@echo "INVENV: '${INVENV}'"
+
+dev: install-dev
+
+# setup development environment
+install-dev:
+	pdm install --dev
 
 .PHONY: test
 test:
 	${INVENV} pytest -vv ${tests}
 
 .PHONY: test-w-coverage
+# run all tests with coverage collection
 test-w-coverage:
-	${INVENV} pytest -vv ${cov} --cov-report=${cov_report} ${all_tests}
+	${INVENV} pytest -vv ${cov}  --cov-report=${cov_report} ${all_tests}
 
-.PHONY: lint
-lint:
-	${INVENV} ruff ${flags} flask_matomo2 tests
-
-.PHONY: serve-docs
-serve-docs:
-	cd docs && ${INVENV} mkdocs serve && cd -
+.PHONY: doc-tests
+doc-tests:
+	${INVENV} pytest ${cov} --cov-report=${cov_report} --doctest-modules ${PROJECT_SRC}
 
 .PHONY: type-check
+# check types
 type-check:
-	${INVENV} mypy --config-file mypy.ini -p flask_matomo2
+	${INVENV} mypy ${PROJECT_SRC} ${tests}
 
-branch := "main"
-.PHONY: publish
-publish:
-	git push origin ${branch} --tags
-
-.PHONY: clean clean-pyc
-clean: clean-pyc
-clean-pyc:
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
-
-.PHONY: fmt
-fmt:
-	${INVENV} black .
-
-# test if code is formatted
-.PHONY: check-fmt
-check-fmt:
-	${INVENV} black . --check
+.PHONY: lint
+# lint the code
+lint:
+	${INVENV} ruff ${PROJECT_SRC} ${tests}
 
 part := "patch"
+bumpversion: install-dev
+	${INVENV} bump2version ${part}
 
-bumpversion:
-	${INVENV} bumpversion ${part}
+# run formatter(s)
+fmt:
+	${INVENV} ruff format ${PROJECT_SRC} ${tests}
+
+.PHONY: check-fmt
+# check formatting
+check-fmt:
+	${INVENV} ruff format --check ${PROJECT_SRC} ${tests}
 
 build:
-	poetry build
+	pdm build
 
-tests/requirements.txt: pyproject.toml
-	poetry export --with=dev --without-hashes --output=$@
+branch := "main"
+publish:
+	git push -u origin ${branch} --tags
+
+
+.PHONY: prepare-release
+prepare-release: tests/requirements-testing.lock
+
+# we use lock extension so that dependabot doesn't pick up changes in this file
+tests/requirements-testing.lock: pyproject.toml
+	pdm export --dev --format requirements --output $@

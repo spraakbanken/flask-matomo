@@ -161,3 +161,4 @@ cython_debug/
 
 # Ignore poetry.lock
 poetry.lock
+.pdm-python
