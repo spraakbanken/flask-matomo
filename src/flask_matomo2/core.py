@@ -216,12 +216,9 @@ class Matomo:
         if "cvar" in tracking_data:
             cvar = tracking_data.pop("cvar")
             tracking_data["cvar"] = json.dumps(cvar)
-        tracking_params = urllib.parse.urlencode(tracking_data)
-
-        tracking_url = f"{self.matomo_url}?{tracking_params}"
-        logger.debug(f"calling {tracking_url}")
+        logger.debug("calling '%s' with '%s'", self.matomo_url, tracking_data)
         try:
-            r = self.client.get(tracking_url)
+            r = self.client.post(self.matomo_url, data=tracking_data)
 
             if r.status_code >= 300:
                 logger.error(
