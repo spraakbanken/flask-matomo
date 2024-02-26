@@ -170,7 +170,7 @@ jobs:
           name: pypi_files
           path: dist
 
-      - run: rm -r src/flask-matomo2
+      - run: rm -r src/flask_matomo2
       - run: pip install typing-extensions
       - run: pip install -r tests/requirements-testing.lock
       - run: pip install flask-matomo2 --no-index --no-deps --find-links dist --force-reinstall
