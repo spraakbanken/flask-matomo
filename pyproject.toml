@@ -30,15 +30,14 @@ repository = "https://github.com/spraakbanken/flask-matomo2"
 documentation = "http://flask-matomo2.readthedocs.io/"
 
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.black]
-line-length = 97
-target_version = ["py38"]
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.pyright]
-reportGenralTypeIssues = "none"
+reportGeneralTypeIssues = "none"
 
 [tool.pdm]
 distribution = true
