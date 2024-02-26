@@ -11,7 +11,6 @@ import httpx
 import pytest
 from flask import Flask
 from werkzeug import exceptions as werkzeug_exc
-from werkzeug.wrappers import response
 
 from flask_matomo2 import Matomo
 from flask_matomo2.trackers import PerfMsTracker
