@@ -26,7 +26,7 @@ class Response:
 def fixture_matomo_client():
     client = mock.Mock(spec=httpx.Client)
 
-    client.get = mock.Mock(return_value=Response(status_code=204))
+    client.post = mock.Mock(return_value=Response(status_code=204))
     return client
 
 
@@ -115,19 +115,19 @@ def fixture_app_wo_token(matomo_client, settings: dict) -> Flask:
     return create_app(matomo_client, new_settings)
 
 
-@pytest.fixture(name="expected_q")
+@pytest.fixture(name="expected_data")
 def fixture_expected_q(settings: dict) -> dict:
     return {
-        "idsite": [str(settings["idsite"])],
-        "url": ["http://testserver"],
-        "apiv": ["1"],
+        "idsite": str(settings["idsite"]),
+        "url": "http://testserver",
+        "apiv": "1",
         # "lang": ["None"]
-        "rec": ["1"],
+        "rec": "1",
         # "ua": ["python-httpx/0.24.0"],
-        "cip": ["127.0.0.1"],
-        "token_auth": ["FAKE_TOKEN"],
-        "send_image": ["0"],
-        "cvar": ['{"http_status_code": 200, "http_method": "GET"}'],
+        "cip": "127.0.0.1",
+        "token_auth": "FAKE_TOKEN",
+        "send_image": "0",
+        "cvar": '{"http_status_code": 200, "http_method": "GET"}',
     }
 
 
@@ -149,76 +149,77 @@ def fixture_client_wo_token(
         yield client
 
 
-def assert_query_string(url: str, expected_q: dict) -> None:
-    urlparts = urlsplit(url[6:-2])
-    q = parse_qs(urlparts.query)
-    assert q.pop("rand") is not None
-    assert q.pop("gt_ms") is not None
-    assert q.pop("ua")[0].startswith("python-httpx")
-    cvar = q.pop("cvar")[0]
-    expected_cvar = expected_q.pop("cvar")[0]
-    if "pf_srv" in expected_q:
-        expected_lower_limit = expected_q.pop("pf_srv")
-        assert float(q.pop("pf_srv")[0]) >= expected_lower_limit
+def assert_post_data(actual_data: dict, expected_data: dict) -> None:
+    print(f"{actual_data=}")
+    print(f"{expected_data=}")
+    assert actual_data.pop("rand") is not None
+    assert actual_data.pop("gt_ms") is not None
+    assert str(actual_data.pop("ua")).startswith("python-httpx")
+    cvar = actual_data.pop("cvar")
+    expected_cvar = expected_data.pop("cvar")
+    if "pf_srv" in expected_data:
+        expected_lower_limit = expected_data.pop("pf_srv")
+        assert float(actual_data.pop("pf_srv")) >= expected_lower_limit
 
-    assert q == expected_q
+    assert actual_data == expected_data
     assert json.loads(cvar) == json.loads(expected_cvar)
 
 
-def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_q: dict):
+def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_data: dict):
     response = client.get("/foo")
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()
+    matomo_client.post.assert_called()
 
-    expected_q["url"][0] += "/foo"
-    expected_q["action_name"] = ["/foo"]
-    assert_query_string(str(matomo_client.get.call_args), expected_q)
+    expected_data["url"] += "/foo"
+    expected_data["action_name"] = "/foo"
+    assert_post_data(matomo_client.post.call_args.kwargs["data"], expected_data)
 
 
 def test_matomo_client_is_not_called_when_user_agent_should_be_ignored(client, matomo_client):
     response = client.get("/foo", headers={"user-agent": "creepy-bot-with-suffix"})
     assert response.status_code == 200
 
-    matomo_client.get.assert_not_called()
+    matomo_client.post.assert_not_called()
 
 
-def test_middleware_works_without_token(client_wo_token, matomo_client, expected_q: dict):
+def test_middleware_works_without_token(client_wo_token, matomo_client, expected_data: dict):
     response = client_wo_token.get("/foo")
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()  # get.assert_called()
+    matomo_client.post.assert_called()  # get.assert_called()
 
-    expected_q["url"][0] += "/foo"
-    expected_q["action_name"] = ["/foo"]
-    del expected_q["cip"]
-    del expected_q["token_auth"]
-    assert_query_string(str(matomo_client.get.call_args), expected_q)
+    expected_data["url"] += "/foo"
+    expected_data["action_name"] = "/foo"
+    del expected_data["cip"]
+    del expected_data["token_auth"]
+    print(f"{matomo_client.post.call_args.kwargs=}")
+    assert_post_data(matomo_client.post.call_args.kwargs["data"], expected_data)
 
 
-def test_lang_gets_tracked_if_accept_language_is_set(client, matomo_client, expected_q: dict):
+def test_lang_gets_tracked_if_accept_language_is_set(client, matomo_client, expected_data: dict):
     response = client.get("/foo", headers={"accept-language": "sv"})
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()  # get.assert_called()
+    matomo_client.post.assert_called()  # get.assert_called()
 
-    expected_q["url"][0] += "/foo"
-    expected_q["action_name"] = ["/foo"]
-    expected_q["lang"] = ["sv"]
-    assert_query_string(str(matomo_client.get.call_args), expected_q)
+    expected_data["url"] += "/foo"
+    expected_data["action_name"] = "/foo"
+    expected_data["lang"] = "sv"
+    assert_post_data(matomo_client.post.call_args.kwargs["data"], expected_data)
 
 
-def test_x_forwarded_for_changes_ip(client, matomo_client, expected_q: dict):
+def test_x_forwarded_for_changes_ip(client, matomo_client, expected_data: dict):
     forwarded_ip = "127.0.0.2"
     response = client.get("/foo", headers={"x-forwarded-for": forwarded_ip})
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()  # get.assert_called()
+    matomo_client.post.assert_called()  # get.assert_called()
 
-    expected_q["url"][0] += "/foo"
-    expected_q["action_name"] = ["/foo"]
-    expected_q["cip"] = [forwarded_ip]
-    assert_query_string(str(matomo_client.get.call_args), expected_q)
+    expected_data["url"] += "/foo"
+    expected_data["action_name"] = "/foo"
+    expected_data["cip"] = forwarded_ip
+    assert_post_data(matomo_client.post.call_args.kwargs["data"], expected_data)
 
 
 def test_matomo_client_doesnt_gets_called_on_get_health(
@@ -227,8 +228,7 @@ def test_matomo_client_doesnt_gets_called_on_get_health(
 ):
     response = client.get("/health")
     assert response.status_code == 200
-
-    matomo_client.get.assert_not_called()
+    matomo_client.post.assert_not_called()
 
 
 def test_matomo_client_doesnt_gets_called_on_get_heartbeat(
@@ -238,18 +238,18 @@ def test_matomo_client_doesnt_gets_called_on_get_heartbeat(
     response = client.get("/heartbeat")
     assert response.status_code == 200
 
-    matomo_client.get.assert_not_called()
+    matomo_client.post.assert_not_called()
 
 
-def test_matomo_details_updates_action_name(client, matomo_client, expected_q: dict):
+def test_matomo_details_updates_action_name(client, matomo_client, expected_data: dict):
     response = client.get("/bor")
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()  # get.assert_called()
+    matomo_client.post.assert_called()  # get.assert_called()
 
-    expected_q["url"][0] += "/bor"
-    expected_q["action_name"] = ["Foo-Bor"]
-    assert_query_string(str(matomo_client.get.call_args), expected_q)
+    expected_data["url"] += "/bor"
+    expected_data["action_name"] = "Foo-Bor"
+    assert_post_data(matomo_client.post.call_args.kwargs["data"], expected_data)
 
 
 @pytest.mark.parametrize("path", ["/some/old/path", "/old/path", "/really/old"])
@@ -258,55 +258,54 @@ def test_matomo_client_doesnt_gets_called_on_get_old(
 ):
     response = client.get(path)
     assert response.status_code == 200
-
-    matomo_client.get.assert_not_called()
+    matomo_client.post.assert_not_called()
 
 
 def test_matomo_client_gets_called_on_get_custom_var(
-    client: httpx.Client, matomo_client, expected_q: dict
+    client: httpx.Client, matomo_client, expected_data: dict
 ):
     response = client.get("/set/custom/var")
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()
+    matomo_client.post.assert_called()
 
-    expected_q["url"][0] += "/set/custom/var"
-    expected_q["action_name"] = ["/set/custom/var"]
-    expected_q["e_a"] = ["Playing"]
-    expected_q["pf_srv"] = 90000
-    expected_q["cvar"] = ['{"http_status_code": 200, "http_method": "GET", "anything": "goes"}']
+    expected_data["url"] += "/set/custom/var"
+    expected_data["action_name"] = "/set/custom/var"
+    expected_data["e_a"] = "Playing"
+    expected_data["pf_srv"] = 90000
+    expected_data["cvar"] = '{"http_status_code": 200, "http_method": "GET", "anything": "goes"}'
 
-    assert_query_string(str(matomo_client.get.call_args), expected_q)
+    assert_post_data(matomo_client.post.call_args.kwargs["data"], expected_data)
 
 
-def test_app_works_even_if_tracking_fails(client, matomo_client):
-    matomo_client.get = mock.Mock(return_value=Response(status_code=500))
+def test_api_works_even_if_tracking_fails(client, matomo_client):
+    matomo_client.post = mock.Mock(return_value=Response(status_code=500))
     response = client.get("/foo")
 
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()
+    matomo_client.post.assert_called()
 
 
 def test_app_works_even_if_tracking_raises(client, matomo_client):
-    matomo_client.get = mock.Mock(side_effect=httpx.HTTPError("custom"))
+    matomo_client.post = mock.Mock(side_effect=httpx.HTTPError("custom"))
     response = client.get("/foo")
 
     assert response.status_code == 200
 
-    matomo_client.get.assert_called()
+    matomo_client.post.assert_called()
 
 
 def test_matomo_client_gets_called_on_get_bar(
-    client: httpx.Client, matomo_client, expected_q: dict
+    client: httpx.Client, matomo_client, expected_data: dict
 ):
     response = client.get("/bar")
     assert response.status_code >= 500
 
-    matomo_client.get.assert_called()
+    matomo_client.post.assert_called()
 
-    expected_q["url"][0] += "/bar"
-    expected_q["action_name"] = ["/bar"]
-    expected_q["cvar"][0] = expected_q["cvar"][0].replace("200", "500")
+    expected_data["url"] += "/bar"
+    expected_data["action_name"] = "/bar"
+    expected_data["cvar"] = expected_data["cvar"].replace("200", "500")
 
-    assert_query_string(str(matomo_client.get.call_args), expected_q)
+    assert_post_data(matomo_client.post.call_args.kwargs["data"], expected_data)
