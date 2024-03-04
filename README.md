@@ -119,6 +119,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+* Use post request when tracking. PR [#51](https://github.com/spraakbanken/flask-matomo2/pull/51) by [@kod-kristoff](https://github.com/kod-kristoff).
 * Enable late activation. PR [#50](https://github.com/spraakbanken/flask-matomo2/pull/50) by [@kod-kristoff](https://github.com/kod-kristoff).
 * build(deps): bump actions/checkout from 3 to 4. PR [#48](https://github.com/spraakbanken/flask-matomo2/pull/48) by [@dependabot[bot]](https://github.com/apps/dependabot).
 * extend ci. PR [#47](https://github.com/spraakbanken/flask-matomo2/pull/47) by [@kod-kristoff](https://github.com/kod-kristoff).
