@@ -77,8 +77,16 @@ class Matomo:
         ignored_patterns: typing.Optional[typing.List[str]] = None,
         ignored_ua_patterns: typing.Optional[typing.List[str]] = None,
     ):
+        if not matomo_url:
+            raise ValueError("matomo_url has to be set")
+
         self.app = app
-        self.matomo_url = matomo_url
+        # Allow backend url with or without the filename part and/or trailing slash
+        self.matomo_url = (
+            matomo_url
+            if matomo_url.endswith(("/matomo.php", "/piwik.php"))
+            else matomo_url.strip("/") + "/matomo.php"
+        )
         self.id_site = id_site
         self.token_auth = token_auth
         self.base_url = base_url.strip("/") if base_url else base_url
@@ -92,8 +100,6 @@ class Matomo:
         if ignored_patterns:
             self.ignored_patterns = [re.compile(pattern) for pattern in ignored_patterns]
 
-        if not matomo_url:
-            raise ValueError("matomo_url has to be set")
         if not self.token_auth:
             logger.warning("'token_auth' not given, NOT tracking ip-address")
 
