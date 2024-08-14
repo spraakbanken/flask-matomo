@@ -287,6 +287,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+## 0.4.3 - 2024-08-14
+
+### Documentation
+
+* add metadata about python versions.
+
 ## 0.4.2 - 2024-08-14
 
 ### Documentation
