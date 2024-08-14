@@ -9,6 +9,13 @@
 [![Maturity badge - level 3](https://img.shields.io/badge/Maturity-Level%203%20--%20Stable-green.svg)](https://github.com/spraakbanken/getting-started/blob/main/scorecard.md)
 [![Stage](https://img.shields.io/pypi/status/sparv-sbx-ocr-correction-viklofg-sweocr)](https://pypi.org/project/flask-matomo2/)
 
+[![Code Coverage](https://codecov.io/gh/spraakbanken/flask-matomo2/branch/main/graph/badge.svg)](https://codecov.io/gh/spraakbanken/flask-matomo2/)
+
+[![CI(check)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/check.yml/badge.svg)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/check.yml)
+[![CI(release)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/release.yml/badge.svg)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/release.yml)
+[![CI(scheduled)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/scheduled.yml/badge.svg)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/scheduled.yml)
+[![CI(test)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/test.yml/badge.svg)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/test.yml)
+
 flask-matomo2 is a library which lets you track the requests of your Flask website using Matomo (Piwik).
 
 Forked from [LucasHild/flask-matomo](https://github.com/LucasHild/flask-matomo).
