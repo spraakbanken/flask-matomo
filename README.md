@@ -287,6 +287,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+* track urlref. PR [#58](https://github.com/spraakbanken/flask-matomo2/pull/58) by [@kod-kristoff](https://github.com/kod-kristoff).
 ## 0.4.4 - 2024-08-14
 
 ### Documentation
