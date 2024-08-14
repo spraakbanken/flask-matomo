@@ -287,7 +287,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+## 0.4.2 - 2024-08-14
+
+### Documentation
+
 * sort out documentation of params . PR [#56](https://github.com/spraakbanken/flask-matomo2/pull/56) by [@kod-kristoff](https://github.com/kod-kristoff).
+
 ## 0.4.1 - 2024-08-14
 
 ### Changed
