@@ -55,7 +55,7 @@ dev = [
     "pytest-cov>=4.1.0",
     "mypy>=1.8.0",
     "bump2version>=1.0.1",
-    "ruff>=0.2.2",
+    "ruff>=0.5.7",
     "syrupy>=4.6.1",
 ]
 
