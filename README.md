@@ -121,7 +121,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Latest Changes
 
+## 0.4.1 - 2024-08-14
+
+### Changed
+
 * fix: add "/matomo.php" to matomo_url if needed. PR [#55](https://github.com/spraakbanken/flask-matomo2/pull/55) by [@arildm](https://github.com/arildm).
+  
 ## 0.4.0 - 2024-03-04
 
 ### Changed
