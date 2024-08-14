@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
   pull_request:
   merge_group:
 
@@ -22,6 +20,10 @@ env:
 jobs:
 
   coverage:
+    # This action runs tests for coverage collection and uploads them to codecov.io.
+    # This requires the secret `CODECOV_TOKEN` be set as secret on GitHub, both for 
+    # Actions and Dependabot
+
     name: "${{ matrix.os }} / ${{ matrix.python-version }} / coverage"
     strategy:
       max-parallel: 4
@@ -42,6 +44,8 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up the environment
         uses: pdm-project/setup-pdm@v4
@@ -54,7 +58,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('.github/workflows/test.yml') }}
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('**/pdm.lock') }}-${{ hashFiles('.github/workflows/test.yml') }}
   
       - name: Install dependencies
         if: steps.cached-venv.outputs.cache-hit != 'true'
@@ -75,6 +79,63 @@ jobs:
           # name: codecov-umbrella
           verbose: true
 
+  doctests:
+    # This action runs doctests for coverage collection and uploads them to codecov.io.
+    # This requires the secret `CODECOV_TOKEN` be set as secret on GitHub, both for 
+    # Actions and Dependabot
+
+    name: "${{ matrix.os }} / 3.8 / doctest"
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+      matrix:
+        os: [ubuntu] 
+
+    runs-on: ${{ matrix.os }}-latest
+    env:
+      OS: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up the environment
+        uses: pdm-project/setup-pdm@v4
+        id: setup-python
+        with:
+          python-version: ${{ env.MINIMUM_PYTHON_VERSION }}
+      
+      - name: Load cached venv
+        id: cached-venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('**/pdm.lock') }}-${{ hashFiles('.github/workflows/test.yml') }}
+  
+      - name: Install dependencies
+        if: steps.cached-venv.outputs.cache-hit != 'true'
+        run: make install-dev
+      #----------------------------------------------
+      # Run tests and upload coverage
+      #----------------------------------------------
+      - name: make doc-tests
+        run: make doc-tests cov_report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # directory: ./coverage
+          env_vars: OS,PYTHON,TESTTYPE
+          fail_ci_if_error: true
+          # files: ./coverage/coverage.xml
+          # flags: unittests
+          # name: codecov-umbrella
+          verbose: true
+        env:
+          PYTHON: ${{ env.MINIMUM_PYTHON_VERSION }}
+          TESTTYPE: doctest
+
   minimal:
     # This action chooses the oldest version of the dependencies permitted by Cargo.toml to ensure
     # that this crate is compatible with the minimal version that this crate and its dependencies
@@ -87,6 +148,8 @@ jobs:
     name: ubuntu / 3.8 / minimal-versions
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Set up the environment
         uses: pdm-project/setup-pdm@v4
         id: setup-python
@@ -99,6 +162,7 @@ jobs:
         run: pdm sync --dev
       - name: make test
         run: make test
+  
   # https://github.com/marketplace/actions/alls-green#why used for branch protection checks
   test-check:
     if: always()
@@ -113,94 +177,3 @@ jobs:
         with:
           jobs: ${{ toJSON(needs) }}
 
-  build:
-    name: ubuntu / 3.8 / build package
-     # only run on push to main and on release
-    if: success() && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    steps:
-      #----------------------------------------------
-      #       check-out repo and set-up python
-      #----------------------------------------------
-      - name: Check out repository
-        uses: actions/checkout@v4
-      
-      #----------------------------------------------
-      #  -----  setup python   -----
-      #----------------------------------------------
-      - name: Set up the environment
-        uses: pdm-project/setup-pdm@v4
-        id: setup-python
-        with:
-          python-version: ${{ env.MINIMUM_PYTHON_VERSION }}
-      
-      #----------------------------------------------
-      #  -----  build distribution -----
-      #----------------------------------------------
-      - name: Build distribution
-        run: make build
-
-      #----------------------------------------------
-      #  -----  upload artifacts  -----
-      #----------------------------------------------
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pypi_files
-          path: dist
-
-  test-build:
-    needs: [build]
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu]
-    name: ${{ matrix.os }} / 3.8 / test built package
-
-    runs-on: ${{ matrix.os }}-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: set up python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.MINIMUM_PYTHON_VERSION }}
-
-      - name: get dist artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: pypi_files
-          path: dist
-
-      - run: rm -r src/flask_matomo2
-      - run: pip install typing-extensions
-      - run: pip install -r tests/requirements-testing.lock
-      - run: pip install flask-matomo2 --no-index --no-deps --find-links dist --force-reinstall
-      - run: pytest
-
-  publish:
-    needs: 
-      - test-check
-      - test-build
-    if: success() && startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Python ${{ env.MINIMUM_PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.MINIMUM_PYTHON_VERSION }}
-      - name: get dist artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: pypi_files
-          path: dist
-
-      - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
