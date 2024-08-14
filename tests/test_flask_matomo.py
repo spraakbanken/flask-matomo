@@ -10,8 +10,8 @@ import flask
 import httpx
 import pytest
 from flask import Flask
-from werkzeug import exceptions as werkzeug_exc
 from syrupy.matchers import path_type
+from werkzeug import exceptions as werkzeug_exc
 
 from flask_matomo2 import Matomo
 from flask_matomo2.trackers import PerfMsTracker
