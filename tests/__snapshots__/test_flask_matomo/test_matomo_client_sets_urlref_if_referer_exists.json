@@ -1,0 +1,15 @@
+{
+  "action_name": "/foo",
+  "apiv": "1",
+  "cip": "127.0.0.1",
+  "cvar": "{\"http_status_code\": 200, \"http_method\": \"GET\"}",
+  "gt_ms": "float",
+  "idsite": "1",
+  "rand": "int",
+  "rec": "1",
+  "send_image": "0",
+  "token_auth": "FAKE_TOKEN",
+  "ua": "<UserAgent None/None>",
+  "url": "http://testserver/foo",
+  "urlref": "http://example.com"
+}

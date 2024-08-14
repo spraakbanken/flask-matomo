@@ -166,6 +166,9 @@ class Matomo:
         if request.accept_languages:
             data["lang"] = request.accept_languages[0][0]
 
+        if request.referrer:
+            data["urlref"] = request.referrer
+
         # Overwrite action_name, if it was configured with details()
         if self.routes_details.get(action_name) and self.routes_details.get(action_name, {}).get(
             "action_name"
