@@ -56,7 +56,7 @@ dev = [
     "mypy>=1.8.0",
     "ruff>=0.5.7",
     "syrupy>=4.6.1",
-    "bump-my-version>=0.25.3",
+    "bump-my-version>=0.25.4",
 ]
 
 [tool.pdm.build]
