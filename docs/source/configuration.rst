@@ -1,6 +1,59 @@
 Configuration
 ===============
 
+Matomo url *required*
+---------------------
+
+You must give the the `matomo_url`. If the given url doesn't end with `/matomo.php` or `/piwik.php`
+then `/matomo.php` will be added.
+
+This can be set either in the constructor:
+
+.. code-block:: python
+  matomo = Matomo(matomo_url="https://trackingserver")
+  # or, equivalently,
+  matomo = Matomo(matomo_url="https://trackingserver/matomo.php")
+
+Or when activating the Matomo object:
+
+.. code-block:: python
+  matomo = Matomo.activate_later()
+
+  matomo.activate(matomo_url="https://trackingserver")
+  # or, equivalently,
+  matomo.activate(matomo_url="https://trackingserver/matomo.php")
+
+Id site *required*
+------------------
+
+You must also give the `id_site` as an int. 
+
+This can be given either in the constructor or in the call to `activate`.
+
+Token auth
+----------
+
+You can optionally give `token_auth` (retrieved from your tracking server), this is required to track
+some information. 
+
+This can be given either in the constructor or in the call to `activate`.
+
+Base url
+--------
+
+If your app is behind a proxy, you can adjust the tracked url by setting `base_url`.
+This only needed if you don't adjust the url any other way (gunicorn, reverse_proxied, etc)
+
+This can be given either in the constructor or in the call to `activate`.
+
+Client
+------
+
+You can supply your own http client by setting `client`.
+This must use the same api as `httpx`:s `Client`.
+
+If not supplied a new `httpx.Client` will be created.
+
 Details about a route
 ---------------------
 
