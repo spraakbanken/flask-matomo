@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = "flask-matomo2"
-copyright = "(2018) Lucas Hild, (2023) Språkbanken, Göteborgs universitet."
+copyright = "(2018) Lucas Hild, (2023-2024) Språkbanken, Göteborgs universitet."  # noqa: A001
 author = "Lucas Hild, Kristoffer Andersson"
 
 # The short X.Y version
-version = ""
+version = "0.4"
 # The full version, including alpha/beta/rc tags
-release = "0.3.0"
+release = "0.4.4"
 
 
 # -- General configuration ---------------------------------------------------
