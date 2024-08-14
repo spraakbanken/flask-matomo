@@ -124,7 +124,7 @@ lint-fix:
 
 part := "patch"
 bumpversion:
-	${INVENV} bump-my-version bump ${part}
+	${INVENV} bump2version ${part}
 
 bumpversion-show:
 	${INVENV} bump-my-version show-bump
