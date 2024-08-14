@@ -140,18 +140,20 @@ def test_matomo_client_sets_urlref_if_referer_exists(
     assert matomo_client.post.call_args.kwargs["data"] == snapshot_json(matcher=make_matcher())
 
 
-def test_matomo_url_works_with_or_without_trailing_slash_or_filename():
-    app = Flask(__name__)
-    app.config.update({"TESTING": True})
-    urls = {
-        "http://trackingserver": "http://trackingserver/matomo.php",
-        "http://trackingserver/": "http://trackingserver/matomo.php",
-        "http://trackingserver/matomo.php": "http://trackingserver/matomo.php",
-        "http://trackingserver/piwik.php": "http://trackingserver/piwik.php",
-    }
-    for in_url, stored_url in urls.items():
-        matomo = Matomo(matomo_url=in_url)
-        assert matomo.matomo_url == stored_url
+@pytest.mark.parametrize(
+    "in_url, stored_url",
+    [
+        ("http://trackingserver", "http://trackingserver/matomo.php"),
+        ("http://trackingserver/", "http://trackingserver/matomo.php"),
+        ("http://trackingserver/matomo.php", "http://trackingserver/matomo.php"),
+        ("http://trackingserver/piwik.php", "http://trackingserver/piwik.php"),
+    ],
+)
+def test_matomo_url_works_with_or_without_trailing_slash_or_filename(
+    in_url: str, stored_url: str
+):
+    matomo = Matomo(matomo_url=in_url)
+    assert matomo.matomo_url == stored_url
 
 
 def test_matomo_client_gets_called_on_get_foo(client, matomo_client, snapshot_json):
