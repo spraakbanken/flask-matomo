@@ -165,7 +165,7 @@ class Matomo:
 
         if request.accept_languages:
             data["lang"] = request.accept_languages[0][0]
-        
+
         if request.referrer:
             data["urlref"] = request.referrer
 
