@@ -165,6 +165,20 @@ def assert_post_data(actual_data: dict, expected_data: dict) -> None:
     assert json.loads(cvar) == json.loads(expected_cvar)
 
 
+def test_matomo_url_works_with_or_without_trailing_slash_or_filename():
+    app = Flask(__name__)
+    app.config.update({"TESTING": True})
+    urls = {
+        "http://trackingserver": "http://trackingserver/matomo.php",
+        "http://trackingserver/": "http://trackingserver/matomo.php",
+        "http://trackingserver/matomo.php": "http://trackingserver/matomo.php",
+        "http://trackingserver/piwik.php": "http://trackingserver/piwik.php",
+    }
+    for in_url, stored_url in urls.items():
+        matomo = Matomo(matomo_url=in_url)
+        assert matomo.matomo_url == stored_url
+
+
 def test_matomo_client_gets_called_on_get_foo(client, matomo_client, expected_data: dict):
     response = client.get("/foo")
     assert response.status_code == 200
