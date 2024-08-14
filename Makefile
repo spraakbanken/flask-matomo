@@ -15,6 +15,8 @@ help:
 	@echo "usage:"
 	@echo "dev | install-dev"
 	@echo "   setup development environment"
+	@echo "install"
+	@echo "   setup production environment"
 	@echo ""
 	@echo "info"
 	@echo "   print info about the system and project"
@@ -28,6 +30,9 @@ help:
 	@echo "lint"
 	@echo "   lint the code"
 	@echo ""
+	@echo "lint-fix"
+	@echo "   lint the code and try to fix it"
+	@echo ""
 	@echo "type-check"
 	@echo "   check types"
 	@echo ""
@@ -40,9 +45,12 @@ help:
 	@echo "bumpversion [part=]"
 	@echo "   bumps the given part of the version of the project. (Default: part='patch')"
 	@echo ""
+	@echo "bumpversion-show"
+	@echo "   shows the bump path that is possible"
+	@echo ""
 	@echo "publish [branch=]"
 	@echo "   pushes the given branch including tags to origin, for CI to publish based on tags. (Default: branch='main')"
-	@echo "   Typically used after `make bumpversion`"
+	@echo "   Typically used after 'make bumpversion'"
 	@echo ""
 	@echo "prepare-release"
 	@echo "   run tasks to prepare a release"
@@ -77,6 +85,15 @@ dev: install-dev
 install-dev:
 	pdm install --dev
 
+# setup production environment
+install:
+	pdm sync --prod
+
+lock: pdm.lock
+
+pdm.lock: pyproject.toml
+	pdm lock
+
 .PHONY: test
 test:
 	${INVENV} pytest -vv ${tests}
@@ -98,11 +115,19 @@ type-check:
 .PHONY: lint
 # lint the code
 lint:
-	${INVENV} ruff ${PROJECT_SRC} ${tests}
+	${INVENV} ruff check ${PROJECT_SRC} ${tests}
+
+.PHONY: lint-fix
+# lint the code (and fix if possible)
+lint-fix:
+	${INVENV} ruff check --fix ${PROJECT_SRC} ${tests}
 
 part := "patch"
-bumpversion: install-dev
-	${INVENV} bump2version ${part}
+bumpversion:
+	${INVENV} bump-my-version bump ${part}
+
+bumpversion-show:
+	${INVENV} bump-my-version show-bump
 
 # run formatter(s)
 fmt:
@@ -122,8 +147,22 @@ publish:
 
 
 .PHONY: prepare-release
-prepare-release: tests/requirements-testing.lock
+prepare-release: update-changelog tests/requirements-testing.lock
 
 # we use lock extension so that dependabot doesn't pick up changes in this file
-tests/requirements-testing.lock: pyproject.toml
-	pdm export --dev --format requirements --output $@
+tests/requirements-testing.lock: pyproject.toml pdm.lock
+	pdm export --dev --format requirements --without-hashes --output $@
+
+.PHONY: update-changelog
+update-changelog: CHANGELOG.md
+
+.PHONY: CHANGELOG.md
+CHANGELOG.md:
+	git cliff --unreleased --prepend $@
+
+# update snapshots for `syrupy`
+.PHONY: snapshot-update
+snapshot-update:
+	${INVENV} pytest --snapshot-update
+
+### === project targets below this line ===
