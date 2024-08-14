@@ -11,6 +11,7 @@ import httpx
 import pytest
 from flask import Flask
 from werkzeug import exceptions as werkzeug_exc
+from syrupy.matchers import path_type
 
 from flask_matomo2 import Matomo
 from flask_matomo2.trackers import PerfMsTracker
@@ -164,6 +165,18 @@ def assert_post_data(actual_data: dict, expected_data: dict) -> None:
     assert actual_data == expected_data
     assert json.loads(cvar) == json.loads(expected_cvar)
 
+
+def test_matomo_client_sets_urlref_if_referer_exists(client, matomo_client, snapshot_json) -> None:
+    response = client.get("/foo", headers={
+            "Referer": 'http://example.com'
+        })
+    
+    matcher = path_type({
+      "gt_ms": (float,),
+      "rand": (int,),
+    })
+
+    assert matomo_client.post.call_args.kwargs["data"] == snapshot_json(matcher=matcher)
 
 def test_matomo_url_works_with_or_without_trailing_slash_or_filename():
     app = Flask(__name__)
