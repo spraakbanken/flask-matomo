@@ -28,7 +28,7 @@ class Matomo:
         token that can be found in the area API in the settings of Matomo
     base_url : str
         base_url to the site that should be tracked. Default: None.
-    client : 
+    client :
         http-client to use for tracking the requests. Must use the same api as `httpx.Client`. Default: creates `httpx.Client`
     ignored_routers : list[str]
         a list of routes to ignore

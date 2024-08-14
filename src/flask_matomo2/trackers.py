@@ -5,7 +5,7 @@ import typing
 class PerfMsTracker:
     """
     Measure time between enter and exit and records it in state.
-    
+
     >>> scope = {"tracking_data": {}}
     >>> with PerfMsTracker(scope, key="pf_srv"):
     ...     _a = 2 + 2 # do computation
@@ -34,6 +34,5 @@ class PerfMsTracker:
         self._record_time(self.key, time.perf_counter_ns())
 
     def _record_time(self, key: str, end_ns: float) -> None:
-
         elapsed_time_ms = (end_ns - self.start_ns) / 1000.0
         self.scope["tracking_data"][key] = elapsed_time_ms
