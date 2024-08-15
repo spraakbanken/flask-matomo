@@ -15,6 +15,7 @@
 [![CI(release)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/release.yml/badge.svg)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/release.yml)
 [![CI(scheduled)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/scheduled.yml/badge.svg)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/scheduled.yml)
 [![CI(test)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/test.yml/badge.svg)](https://github.com/spraakbanken/flask-matomo2/actions/workflows/test.yml)
+[![Documentation Status](https://readthedocs.org/projects/flask-matomo2/badge/?version=latest)](https://flask-matomo2.readthedocs.io/en/latest/?badge=latest)
 
 flask-matomo2 is a library which lets you track the requests of your Flask website using Matomo (Piwik).
 
