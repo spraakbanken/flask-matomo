@@ -24,9 +24,9 @@ copyright = "(2018) Lucas Hild, (2023-2024) Språkbanken, Göteborgs universitet
 author = "Lucas Hild, Kristoffer Andersson"
 
 # The short X.Y version
-version = "0.4"
+version = "0.5"
 # The full version, including alpha/beta/rc tags
-release = "0.4.4"
+release = "0.5.0"
 
 
 # -- General configuration ---------------------------------------------------
